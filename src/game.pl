@@ -1,8 +1,7 @@
 % The main predicate, play/0, must be in the game.pl file and must give access to the game menu,
 % which allows configuring the game type (H/H, H/PC, PC/H, or PC/PC), difficulty level(s) to be used
 % by the artificial player(s), among other possible parameters, and start the game cycle.
-play :-
-    .
+play.
 
 
 % initial_state(+GameConfig, -GameState). This predicate receives a desired game configuration and
@@ -12,8 +11,7 @@ play :-
 % state, including board configuration (typically using list of lists with different atoms for the different
 % pieces), identifies the current player (the one playing next), and possibly captured pieces and/or
 % pieces yet to be played, or any other information that may be required, depending on the game.
-initial_state(+GameConfig, -GameState) :-
-    .
+initial_state(+GameConfig, -GameState).
 
 
 % display_game(+GameState). This predicate receives the current game state (including the player
@@ -21,36 +19,31 @@ initial_state(+GameConfig, -GameState) :-
 % visualizations will be valued. Flexible game state representations and visualization predicates will
 % also be valued, for instance those that work with any board size. For uniformization purposes,
 % coordinates should start at (1,1) at the lower left corner.
-display_game(+GameState) :-
-    .
+display_game(+GameState).
 
 
 
 % move(+GameState, +Move, -NewGameState). This predicate is responsible for move validation and
 % execution, receiving the current game state and the move to be executed, and (if the move is valid)
 % returns the new game state after the move is executed.
-move(+GameState, +Move, -NewGameState) :-
-    .
+move(+GameState, +Move, -NewGameState).
 
 
 % valid_moves(+GameState, -ListOfMoves). This predicate receives the current game state, and
 % returns a list of all possible valid moves.
-valid_moves(+GameState, -ListOfMoves) :-
-    .
+valid_moves(+GameState, -ListOfMoves).
 
 
 
 % game_over(+GameState, -Winner). This predicate receives the current game state, and verifies
 % whether the game is over, in which case it also identifies the winner (or draw). Note that this
 % predicate should not print anything to the terminal.
-game_over(+GameState, -Winner) :-
-    .
+game_over(+GameState, -Winner).
 
 
 % value(+GameState, +Player, -Value). This predicate receives the current game state and returns a
 % value measuring how good/bad the current game state is to the given Player.
-value(+GameState, +Player, -Value) :-
-    .
+value(+GameState, +Player, -Value).
 
 
 % choose_move(+GameState, +Level, -Move). This predicate receives the current game state and
@@ -58,5 +51,4 @@ value(+GameState, +Player, -Value) :-
 % 2 should return the best play at the time (using a greedy algorithm), considering the evaluation of
 % the game state as determined by the value/3 predicate. For human players, it should interact with
 % the user to read the move.
-choose_move(+GameState, +Level, -Move) :-
-    .
+choose_move(+GameState, +Level, -Move).
