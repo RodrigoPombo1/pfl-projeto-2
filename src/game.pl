@@ -6,7 +6,7 @@
 
 % define all the structs
 
-% GameConfig vai ter de receber o que o user deu input no menu e especificar se jogador 1 é humano, pc nivel 1, pc nivel 2 e se o jogador 2 é humano, pc nivel 1, pc nivel 2
+% GameConfig vai ter de receber o que o user deu input no menu e especificar se jogador 1 ï¿½ humano, pc nivel 1, pc nivel 2 e se o jogador 2 ï¿½ humano, pc nivel 1, pc nivel 2
 GameConfig(, ).
 GameConfig(late_game_config, ).
 
@@ -62,8 +62,8 @@ receive_human_input(Input).
 % play/0
 % The main predicate, play/0, must be in the game.pl file and must give access to the game menu, which allows configuring the game type (H/H, H/PC, PC/H, or PC/PC), difficulty level(s) to be used by the artificial player(s), among other possible parameters, and start the game cycle.
 play :-
-     display_game(initial_state(new_game_config)).
-     % while not game over
+    display_game(initial_state(new_game_config)).
+    % while not game over
 
 
 % initial_state(+GameConfig, -GameState)
@@ -73,11 +73,8 @@ initial_state(GameConfig, GameState).
 
 
 % display_game(+GameState)
-% This predicate receives the current game state (including the player
-% who will make the next move) and prints the game state to the terminal. Appealing and intuitive
-% visualizations will be valued. Flexible game state representations and visualization predicates will
-% also be valued, for instance those that work with any board size. For uniformization purposes,
-% coordinates should start at (1,1) at the lower left corner.
+% This predicate receives the current game state (including the player who will make the next move) and prints the game state to the terminal. Appealing and intuitive visualizations will be valued. Flexible game state representations and visualization predicates will also be valued, for instance those that work with any board size.
+% For uniformization purposes, coordinates should start at (1,1) at the lower left corner.
 display_game(GameState).
 
 
@@ -97,7 +94,7 @@ valid_moves(GameState, ListOfMoves).
 % This predicate receives the current game state, and verifies whether the game is over, in which case it also identifies the winner (or draw).
 % Note that this predicate should not print anything to the terminal.
 game_over(GameState, Winner).
-        % chama valid moves no jogador atual e vê se não há
+    % calls valid moves on the current player and sees if he has any valid moves, if he doesn't then game over and the other player wins
 
 
 % value(+GameState, +Player, -Value)
