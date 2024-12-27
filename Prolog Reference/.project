@@ -32,4 +32,10 @@
 			</matcher>
 		</filter>
 	</filteredResources>
+	<variableList>
+		<variable>
+			<name>SRC_DIRECTORY</name>
+			<value>file:/C:/Users/rodri/Documents/GitHub/pfl-projeto-2/src</value>
+		</variable>
+	</variableList>
 </projectDescription>
