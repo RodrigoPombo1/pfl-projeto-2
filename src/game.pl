@@ -1,6 +1,9 @@
-% importar os modulos
+% import modules
 :- use_module(library(lists)).
 :- use_module(library(random)).
+
+% import other project files
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
