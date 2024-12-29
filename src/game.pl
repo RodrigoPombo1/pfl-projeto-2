@@ -1,9 +1,12 @@
+% SICStus prolog
+
 % import modules
 :- use_module(library(lists)).
 :- use_module(library(random)).
 
 % import other project files
-
+:- consult(menu_controller).
+:- consult(game_controller).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -21,4 +24,6 @@ play :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ADDICIONAL FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 

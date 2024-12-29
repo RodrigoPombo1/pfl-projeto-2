@@ -1,3 +1,5 @@
+% SICStus prolog
+
 % import modules
 
 

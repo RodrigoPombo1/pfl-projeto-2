@@ -1,10 +1,12 @@
+% SICStus prolog
+
 % everything that has to do with displaying the game (works a bit like a view in MVC (Model View Controller) design pattern)
 
 % import modules
 
 
 % import other project files
-
+:- consult(game_model).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,3 +22,5 @@ display_game(GameState).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ADDICIONAL FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
