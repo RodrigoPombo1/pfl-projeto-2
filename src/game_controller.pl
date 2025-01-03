@@ -32,9 +32,11 @@ move(Board-Player, Move, NewBoard-NextPlayer) :-
 
 % chat gpt
 
+% valid_moves(Board-Player, ListOfMoves) :-
+%     findall(Move, move(Board-Player, Move, _NewState), Moves),
+%     sort(Moves, ListOfMoves).  % Remove duplicates
 valid_moves(Board-Player, ListOfMoves) :-
-    findall(Move, move(Board-Player, Move, _NewState), Moves),
-    sort(Moves, ListOfMoves).  % Remove duplicates
+    findall(Move, valid_move(Board, Player, Move), ListOfMoves).
 
 
 % This predicate receives the current game state, and verifies whether the game is over, in which case it also identifies the winner (or draw).
@@ -90,14 +92,27 @@ value(_Board-Player, _Player, 0).  % Example: always return 0
 %     pick_best_move(Board-Player, Moves, Move).
 
 
-choose_move(Board-Player, human, Move) :-
+% choose_move(Board-Player, human, Move) :-
+%     ( \+ player_has_stack(Board, Player) ->
+%         % If the player has no stack, we do a 'place(X,Y)'
+%         write('Enter coordinates X,Y to place a piece: '),
+%         read_coords(X, Y),
+%         Move = place(X, Y)
+%     ;
+%         % If the player has stacks, we do a 'move_stack(SX,SY,DX,DY)'
+%         write('Enter start coordinates SX,SY: '),
+%         read_coords(SX, SY),
+%         write('Enter destination coordinates DX,DY: '),
+%         read_coords(DX, DY),
+%         Move = move_stack(SX, SY, DX, DY)
+%     ).
+
+choose_move(Board-Player, Player, Move) :-
     ( \+ player_has_stack(Board, Player) ->
-        % If the player has no stack, we do a 'place(X,Y)'
         write('Enter coordinates X,Y to place a piece: '),
         read_coords(X, Y),
         Move = place(X, Y)
     ;
-        % If the player has stacks, we do a 'move_stack(SX,SY,DX,DY)'
         write('Enter start coordinates SX,SY: '),
         read_coords(SX, SY),
         write('Enter destination coordinates DX,DY: '),
@@ -138,14 +153,27 @@ read_coords(X, Y) :-
 
 % chat gpt
 
-% Example stub for valid_move
-valid_move(Board, Player, place(X,Y)) :-
-    % If player has no stack, they must place a piece
+% % Example stub for valid_move
+% valid_move(Board, Player, place(X,Y)) :-
+%     % If player has no stack, they must place a piece
+%     \+ player_has_stack(Board, Player),
+%     cell_empty(Board, X, Y).
+
+% valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
+%     % If player has at least one stack, can move from top cell
+%     player_has_stack(Board, Player),
+%     is_adjacent(SX, SY, DX, DY),
+%     stack_belongs_to(Board, SX, SY, Player).
+
+
+valid_move(Board, Player, place(X, Y)) :-
     \+ player_has_stack(Board, Player),
+    length(Board, N),
+    between(1, N, X),
+    between(1, N, Y),
     cell_empty(Board, X, Y).
 
 valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
-    % If player has at least one stack, can move from top cell
     player_has_stack(Board, Player),
     is_adjacent(SX, SY, DX, DY),
     stack_belongs_to(Board, SX, SY, Player).
@@ -197,8 +225,6 @@ replace_in_list([H|T], I, V, [H|R]) :-
     I > 1, I2 is I - 1,
     replace_in_list(T, I2, V, R).
 
-% Stub: add a piece on every visible piece in line of sight
-add_stack_line_of_sight(TempBoard, _Player, _X, _Y, TempBoard). % For simplicity, do nothing. Expand as needed.
 
 % Move the top piece from (SX,SY) to (DX,DY)
 move_piece(Board, SX, SY, DX, DY, NewBoard) :-
@@ -218,6 +244,17 @@ pick_best_move(_State, [Move|_], Move).  % pick first
 
 
 % Adds a piece on every friendly piece in line of sight (same row or column, with no pieces blocking) 
+% add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
+%     % Find all positions in line of sight of (X,Y) belonging to Player
+%     findall((CX, CY),
+%         (   in_line_of_sight(TempBoard, X, Y, CX, CY),
+%             cell_color(TempBoard, CX, CY, Player) ),
+%         FriendlyCells),
+%     % Add +1 height to each of those positions
+%     increment_stacks(TempBoard, FriendlyCells, UpdatedBoard),
+%     NewBoard = UpdatedBoard.
+
+% Adds a piece on every friendly piece in line of sight (same row or column, with no pieces blocking) 
 add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
     % Find all positions in line of sight of (X,Y) belonging to Player
     findall((CX, CY),
@@ -225,17 +262,52 @@ add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
             cell_color(TempBoard, CX, CY, Player) ),
         FriendlyCells),
     % Add +1 height to each of those positions
-    increment_stacks(TempBoard, FriendlyCells, UpdatedBoard),
-    NewBoard = UpdatedBoard.
+    increment_stacks(TempBoard, FriendlyCells, NewBoard).
 
-% True if (CX, CY) is in same row or column with (X, Y), with no pieces in between
+
+% % True if (CX, CY) is in same row or column with (X, Y), with no pieces in between
+% in_line_of_sight(Board, X, Y, CX, CY) :-
+%     nth1(Y, Board, _),
+%     nth1(X, _, _),
+%     (   CX = X, CY \= Y
+%     ;   CY = Y, CX \= X
+%     ),
+%     clear_path(Board, X, Y, CX, CY).
+
+% % True if (CX, CY) is in same row or column with (X, Y), with no pieces in between
+% in_line_of_sight(Board, X, Y, CX, CY) :-
+%     (   CX = X, CY \= Y
+%     ;   CY = Y, CX \= X
+%     ),
+%     clear_path(Board, X, Y, CX, CY).
+
+% True if (CX, CY) is in same row, column, or diagonal with (X, Y), with no pieces in between
+% in_line_of_sight(Board, X, Y, CX, CY) :-
+%     (   CX = X, CY \= Y
+%     ;   CY = Y, CX \= X
+%     ;   abs(CX - X) =:= abs(CY - Y)  % Diagonal check
+%     ),
+%     clear_path(Board, X, Y, CX, CY).
+
+% True if (CX, CY) is in same row, column, or diagonal with (X, Y), with no pieces in between
 in_line_of_sight(Board, X, Y, CX, CY) :-
-    nth1(Y, Board, _),
-    nth1(X, _, _),
+    nonvar(X), nonvar(Y), nonvar(CX), nonvar(CY),  % Ensure variables are instantiated
     (   CX = X, CY \= Y
     ;   CY = Y, CX \= X
+    ;   abs(CX - X) =:= abs(CY - Y)  % Diagonal check
     ),
     clear_path(Board, X, Y, CX, CY).
+
+
+% Ensures path from (X,Y) to (CX,CY) has no pieces in between
+% clear_path(Board, X, Y, CX, CY) :-
+%     (   X = CX
+%     ->  Step is sign(CY - Y),
+%         check_vertical(Board, X, Y, CY, Step)
+%     ;   Y = CY
+%     ->  Step is sign(CX - X),
+%         check_horizontal(Board, Y, X, CX, Step)
+%     ).
 
 % Ensures path from (X,Y) to (CX,CY) has no pieces in between
 clear_path(Board, X, Y, CX, CY) :-
@@ -245,6 +317,10 @@ clear_path(Board, X, Y, CX, CY) :-
     ;   Y = CY
     ->  Step is sign(CX - X),
         check_horizontal(Board, Y, X, CX, Step)
+    ;   abs(CX - X) =:= abs(CY - Y)
+    ->  StepX is sign(CX - X),
+        StepY is sign(CY - Y),
+        check_diagonal(Board, X, Y, CX, CY, StepX, StepY)
     ).
 
 % Moves vertically from Y to CY, ensuring no blocking piece
@@ -265,6 +341,17 @@ check_horizontal(Board, Y, X, CX, Step) :-
     ;   nth1(Y, Board, Row),
         nth1(Next, Row, empty-0),
         check_horizontal(Board, Y, Next, CX, Step)
+    ).
+
+% Moves diagonally from (X,Y) to (CX,CY), ensuring no blocking piece
+check_diagonal(Board, X, Y, CX, CY, StepX, StepY) :-
+    NextX is X + StepX,
+    NextY is Y + StepY,
+    (   NextX =:= CX, NextY =:= CY
+    ->  true
+    ;   nth1(NextY, Board, Row),
+        nth1(NextX, Row, empty-0),
+        check_diagonal(Board, NextX, NextY, CX, CY, StepX, StepY)
     ).
 
 % Checks the color at (X,Y) if not empty
@@ -306,14 +393,23 @@ actual_row_index(Board, Y, YActual) :-
     YActual is N - Y + 1.
 
 % Example: updated cell_empty/3 that inverts Y
+% cell_empty(Board, X, Y) :-
+%     actual_row_index(Board, Y, YActual),
+%     nth1(YActual, Board, Row),
+%     nth1(X, Row, empty-0).
+
+% % Example: updated set_cell/5
+% set_cell(Board, X, Y, Value, NewBoard) :-
+%     actual_row_index(Board, Y, YActual),
+%     nth1(YActual, Board, OldRow),
+%     replace_in_list(OldRow, X, Value, NewRow),
+%     replace_in_list(Board, YActual, NewRow, NewBoard).
+
 cell_empty(Board, X, Y) :-
-    actual_row_index(Board, Y, YActual),
-    nth1(YActual, Board, Row),
+    nth1(Y, Board, Row),
     nth1(X, Row, empty-0).
 
-% Example: updated set_cell/5
 set_cell(Board, X, Y, Value, NewBoard) :-
-    actual_row_index(Board, Y, YActual),
-    nth1(YActual, Board, OldRow),
+    nth1(Y, Board, OldRow),
     replace_in_list(OldRow, X, Value, NewRow),
-    replace_in_list(Board, YActual, NewRow, NewBoard).
+    replace_in_list(Board, Y, NewRow, NewBoard).
