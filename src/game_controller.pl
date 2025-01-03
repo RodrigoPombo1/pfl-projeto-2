@@ -178,12 +178,23 @@ valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
     is_adjacent(SX, SY, DX, DY),
     stack_belongs_to(Board, SX, SY, Player).
 
-% Placeholder for applying a move
-apply_move(Board, Player, place(X,Y), NewBoard) :-
+% % Placeholder for applying a move
+% apply_move(Board, Player, place(X,Y), NewBoard) :-
+%     set_cell(Board, X, Y, Player-1, TempBoard),
+%     add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard).
+
+% apply_move(Board, Player, move_stack(SX, SY, DX, DY), NewBoard) :-
+%     move_piece(Board, SX, SY, DX, DY, TempBoard),
+%     add_stack_line_of_sight(TempBoard, Player, DX, DY, NewBoard).
+
+% Applies a move to the board
+apply_move(Board, Player, place(X, Y), NewBoard) :-
+    write('Applying move: place('), write(X), write(','), write(Y), write(')'), nl,
     set_cell(Board, X, Y, Player-1, TempBoard),
     add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard).
 
 apply_move(Board, Player, move_stack(SX, SY, DX, DY), NewBoard) :-
+    write('Applying move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl,
     move_piece(Board, SX, SY, DX, DY, TempBoard),
     add_stack_line_of_sight(TempBoard, Player, DX, DY, NewBoard).
 
@@ -254,14 +265,36 @@ pick_best_move(_State, [Move|_], Move).  % pick first
 %     increment_stacks(TempBoard, FriendlyCells, UpdatedBoard),
 %     NewBoard = UpdatedBoard.
 
-% Adds a piece on every friendly piece in line of sight (same row or column, with no pieces blocking) 
+% Adds a piece on every friendly piece in line of sight (same row, column, or diagonal, with no pieces blocking)
+% add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
+%     write('Adding stack line of sight for ('), write(X), write(','), write(Y), write(')'), nl,
+%     % Find all positions in line of sight of (X,Y) belonging to Player
+%     findall((CX, CY),
+%         (   write('Checking in line of sight for ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%             in_line_of_sight(TempBoard, X, Y, CX, CY),
+%             cell_color(TempBoard, CX, CY, Player) ),
+%         FriendlyCells),
+%     % Add +1 height to each of those positions
+%     write('FriendlyCells: '), write(FriendlyCells), nl,  % Debug print
+%     increment_stacks(TempBoard, FriendlyCells, NewBoard).
+
+% Adds a piece on every friendly piece in line of sight (same row, column, or diagonal, with no pieces blocking)
 add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
+    write('Adding stack line of sight for ('), write(X), write(','), write(Y), write(')'), nl,
     % Find all positions in line of sight of (X,Y) belonging to Player
     findall((CX, CY),
-        (   in_line_of_sight(TempBoard, X, Y, CX, CY),
+        (   member(Row, TempBoard),
+            nth1(CY, TempBoard, Row),
+            nth1(CX, Row, _),
+            (CX \= X ; CY \= Y),  % Ensure the piece does not count itself
+            write('Checking in line of sight for ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+            in_line_of_sight(TempBoard, X, Y, CX, CY),
             cell_color(TempBoard, CX, CY, Player) ),
-        FriendlyCells),
+        AllFriendlyCells),
+    % Remove duplicates
+    sort(AllFriendlyCells, FriendlyCells),
     % Add +1 height to each of those positions
+    write('FriendlyCells: '), write(FriendlyCells), nl,  % Debug print
     increment_stacks(TempBoard, FriendlyCells, NewBoard).
 
 
@@ -296,6 +329,7 @@ in_line_of_sight(Board, X, Y, CX, CY) :-
     ;   CY = Y, CX \= X
     ;   abs(CX - X) =:= abs(CY - Y)  % Diagonal check
     ),
+    write('Checking clear path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
     clear_path(Board, X, Y, CX, CY).
 
 
@@ -310,18 +344,57 @@ in_line_of_sight(Board, X, Y, CX, CY) :-
 %     ).
 
 % Ensures path from (X,Y) to (CX,CY) has no pieces in between
+% clear_path(Board, X, Y, CX, CY) :-
+%     (   X = CX
+%     ->  Step is sign(CY - Y),
+%         write('Checking vertical path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%         check_vertical(Board, X, Y, CY, Step)
+%     ;   Y = CY
+%     ->  Step is sign(CX - X),
+%         write('Checking horizontal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%         check_horizontal(Board, Y, X, CX, Step)
+%     ;   abs(CX - X) =:= abs(CY - Y)
+%     ->  StepX is sign(CX - X),
+%         StepY is sign(CY - Y),
+%         write('Checking diagonal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%         check_diagonal(Board, X, Y, CX, CY, StepX, StepY)
+%     ).
+
+% Ensures path from (X,Y) to (CX,CY) has no pieces in between
+% clear_path(Board, X, Y, CX, CY) :-
+%     (   X = CX
+%     ->  sign(CY - Y, Step),
+%         write('Checking vertical path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%         check_vertical(Board, X, Y, CY, Step)
+%     ;   Y = CY
+%     ->  sign(CX - X, Step),
+%         write('Checking horizontal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%         check_horizontal(Board, Y, X, CX, Step)
+%     ;   abs(CX - X) =:= abs(CY - Y)
+%     ->  sign(CX - X, StepX),
+%         sign(CY - Y, StepY),
+%         write('Checking diagonal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%         check_diagonal(Board, X, Y, CX, CY, StepX, StepY)
+%     ).
+
+% Ensures path from (X,Y) to (CX,CY) has no pieces in between
 clear_path(Board, X, Y, CX, CY) :-
+    nonvar(X), nonvar(Y), nonvar(CX), nonvar(CY),  % Ensure variables are instantiated
     (   X = CX
-    ->  Step is sign(CY - Y),
+    ->  sign(CY - Y, Step),
+        write('Checking vertical path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
         check_vertical(Board, X, Y, CY, Step)
     ;   Y = CY
-    ->  Step is sign(CX - X),
+    ->  sign(CX - X, Step),
+        write('Checking horizontal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
         check_horizontal(Board, Y, X, CX, Step)
     ;   abs(CX - X) =:= abs(CY - Y)
-    ->  StepX is sign(CX - X),
-        StepY is sign(CY - Y),
+    ->  sign(CX - X, StepX),
+        sign(CY - Y, StepY),
+        write('Checking diagonal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
         check_diagonal(Board, X, Y, CX, CY, StepX, StepY)
     ).
+
 
 % Moves vertically from Y to CY, ensuring no blocking piece
 check_vertical(Board, X, Y, CY, Step) :-
@@ -330,6 +403,7 @@ check_vertical(Board, X, Y, CY, Step) :-
     ->  true
     ;   nth1(Next, Board, Row),
         nth1(X, Row, empty-0),
+        write('Vertical path clear at ('), write(X), write(','), write(Next), write(')'), nl,
         check_vertical(Board, X, Next, CY, Step)
     ).
 
@@ -340,6 +414,7 @@ check_horizontal(Board, Y, X, CX, Step) :-
     ->  true
     ;   nth1(Y, Board, Row),
         nth1(Next, Row, empty-0),
+        write('Horizontal path clear at ('), write(Next), write(','), write(Y), write(')'), nl,
         check_horizontal(Board, Y, Next, CX, Step)
     ).
 
@@ -351,6 +426,7 @@ check_diagonal(Board, X, Y, CX, CY, StepX, StepY) :-
     ->  true
     ;   nth1(NextY, Board, Row),
         nth1(NextX, Row, empty-0),
+        write('Diagonal path clear at ('), write(NextX), write(','), write(NextY), write(')'), nl,
         check_diagonal(Board, NextX, NextY, CX, CY, StepX, StepY)
     ).
 
@@ -371,9 +447,18 @@ increment_stacks(Board, [(CX, CY)|Rest], NewBoard) :-
     replace_in_list(Board, CY, UpdatedRow, TempBoard),
     increment_stacks(TempBoard, Rest, NewBoard).
 
+% % Utility for sign of difference
+% sign(Diff) :- Diff > 0, !.
+% sign(Diff) :- Diff < 0.
+
 % Utility for sign of difference
-sign(Diff) :- Diff > 0, !.
-sign(Diff) :- Diff < 0.
+sign(Diff, Sign) :-
+    (   Diff > 0
+    ->  Sign is 1
+    ;   Diff < 0
+    ->  Sign is -1
+    ;   Sign is 0
+    ).
 
 
 
@@ -409,7 +494,14 @@ cell_empty(Board, X, Y) :-
     nth1(Y, Board, Row),
     nth1(X, Row, empty-0).
 
+% set_cell(Board, X, Y, Value, NewBoard) :-
+%     nth1(Y, Board, OldRow),
+%     replace_in_list(OldRow, X, Value, NewRow),
+%     replace_in_list(Board, Y, NewRow, NewBoard).
+
+% Sets a cell on the board
 set_cell(Board, X, Y, Value, NewBoard) :-
     nth1(Y, Board, OldRow),
     replace_in_list(OldRow, X, Value, NewRow),
     replace_in_list(Board, Y, NewRow, NewBoard).
+
