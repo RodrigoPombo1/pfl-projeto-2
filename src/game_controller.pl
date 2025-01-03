@@ -18,12 +18,34 @@
 % move(+GameState, +Move, -NewGameState).
 
 
-% chat gpt
+% % chat gpt
 move(Board-Player, Move, NewBoard-NextPlayer) :-
     valid_move(Board, Player, Move),
     apply_move(Board, Player, Move, TempBoard),
     next_player(Player, NextPlayer),
     NewBoard = TempBoard.
+
+% % Example fix in move/3, using choose_stack/4 when there are existing stacks
+% move(Board-Player, Move, NewBoard-NextPlayer) :-
+%     (has_stack(Board, Player)       % if there's a stack for Player
+%     ->  choose_stack(Board, Player, X, Y),
+%         % Then unify Move with something like move_stack(X, Y, NX, NY)
+%         Move = move_stack(X, Y, NX, NY)
+%     ;   % otherwise we do normal place
+%         write('Enter coordinates X,Y to place a piece: '),
+%         read(MX), read(MY),
+%         Move = place(MX, MY)
+%     ),
+%     valid_move(Board, Player, Move),
+%     apply_move(Board, Player, Move, TempBoard),
+%     next_player(Player, NextPlayer),
+%     NewBoard = TempBoard.
+
+% % has_stack/2 just succeeds if there's any stack > 1 for that Player
+% has_stack(Board, Player) :-
+%     member(Row, Board),
+%     member(Player-Height, Row),
+%     Height > 1, !.
 
 
 % This predicate receives the current game state, and returns a list of all possible valid moves.
@@ -107,18 +129,41 @@ value(_Board-Player, _Player, 0).  % Example: always return 0
 %         Move = move_stack(SX, SY, DX, DY)
 %     ).
 
-choose_move(Board-Player, Player, Move) :-
-    ( \+ player_has_stack(Board, Player) ->
-        write('Enter coordinates X,Y to place a piece: '),
-        read_coords(X, Y),
-        Move = place(X, Y)
-    ;
-        write('Enter start coordinates SX,SY: '),
-        read_coords(SX, SY),
-        write('Enter destination coordinates DX,DY: '),
-        read_coords(DX, DY),
-        Move = move_stack(SX, SY, DX, DY)
+% choose_move(Board-Player, Player, Move) :-
+%     ( \+ player_has_stack(Board, Player) ->
+%         write('Enter coordinates X,Y to place a piece: '),
+%         read_coords(X, Y),
+%         Move = place(X, Y)
+%     ;
+%         write('Enter start coordinates SX,SY: '),
+%         read_coords(SX, SY),
+%         write('Enter destination coordinates DX,DY: '),
+%         read_coords(DX, DY),
+%         Move = move_stack(SX, SY, DX, DY)
+%     ).
+
+% Choose move based on player type
+choose_move(Board-Player, PlayerType, Move) :-
+    ( PlayerType = human ->
+        ( \+ player_has_stack(Board, Player) ->
+            write('Enter coordinates X,Y to place a piece: '),
+            read_coords(X, Y),
+            Move = place(X, Y)
+        ;
+            write('Enter start coordinates SX,SY: '),
+            read_coords(SX, SY),
+            write('Enter destination coordinates DX,DY: '),
+            read_coords(DX, DY),
+            Move = move_stack(SX, SY, DX, DY)
+        )
+    ; PlayerType = computer-1 ->
+        valid_moves(Board-Player, Moves),
+        random_member(Move, Moves)
+    ; PlayerType = computer-2 ->
+        valid_moves(Board-Player, Moves),
+        pick_best_move(Board-Player, Moves, Move)
     ).
+
 
 % Reads a pair “X,Y.” from the user and unifies X,Y with integer coordinates
 read_coords(X, Y) :-
@@ -325,6 +370,7 @@ add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
 % True if (CX, CY) is in same row, column, or diagonal with (X, Y), with no pieces in between
 in_line_of_sight(Board, X, Y, CX, CY) :-
     nonvar(X), nonvar(Y), nonvar(CX), nonvar(CY),  % Ensure variables are instantiated
+    integer(X), integer(Y), integer(CX), integer(CY),  % Ensure variables are integers
     (   CX = X, CY \= Y
     ;   CY = Y, CX \= X
     ;   abs(CX - X) =:= abs(CY - Y)  % Diagonal check
@@ -463,45 +509,41 @@ sign(Diff, Sign) :-
 
 
 % Convert user input Y to the correct list index (Y’ = size - Y + 1)
-% actual_row_index(Board, Y, YActual) :-
-%     length(Board, N),
-%     YActual is N - Y + 1.
-% actual_row_index(Board, Y, YActual) :-
-%     must_be(integer, Y),
-%     length(Board, N),
-%     between(1, N, Y),
-%     YActual is N - Y + 1.
 actual_row_index(Board, Y, YActual) :-
     integer(Y),
     length(Board, N),
     between(1, N, Y),
     YActual is N - Y + 1.
 
-% Example: updated cell_empty/3 that inverts Y
-% cell_empty(Board, X, Y) :-
-%     actual_row_index(Board, Y, YActual),
-%     nth1(YActual, Board, Row),
-%     nth1(X, Row, empty-0).
-
-% % Example: updated set_cell/5
-% set_cell(Board, X, Y, Value, NewBoard) :-
-%     actual_row_index(Board, Y, YActual),
-%     nth1(YActual, Board, OldRow),
-%     replace_in_list(OldRow, X, Value, NewRow),
-%     replace_in_list(Board, YActual, NewRow, NewBoard).
 
 cell_empty(Board, X, Y) :-
     nth1(Y, Board, Row),
     nth1(X, Row, empty-0).
-
-% set_cell(Board, X, Y, Value, NewBoard) :-
-%     nth1(Y, Board, OldRow),
-%     replace_in_list(OldRow, X, Value, NewRow),
-%     replace_in_list(Board, Y, NewRow, NewBoard).
 
 % Sets a cell on the board
 set_cell(Board, X, Y, Value, NewBoard) :-
     nth1(Y, Board, OldRow),
     replace_in_list(OldRow, X, Value, NewRow),
     replace_in_list(Board, Y, NewRow, NewBoard).
+
+
+
+% Example helper to pick the stack's coordinates (X,Y) without leaving them unbound
+choose_stack(Board, Player, X, Y) :-
+    % Find all stacks for Player
+    findall((SX,SY,Height),
+            ( nth1(SY, Board, Row),
+              nth1(SX, Row, Color-Height),
+              Color = Player,
+              Height > 1
+            ), Stacks),
+    ( Stacks = []
+    -> fail  % no stacks, fallback to placement
+    ; Stacks = [(_,_,_)] 
+      % If exactly one stack, pick it automatically
+    -> Stacks = [(SX,SY,_H)],
+       X = SX, Y = SY
+    ; % Otherwise, ask user for the stack’s position safely
+      write('Choose stack X,Y to move: '), read(X), read(Y)
+    ).
 
