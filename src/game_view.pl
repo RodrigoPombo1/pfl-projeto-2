@@ -22,9 +22,10 @@ display_game(GameState) :-
     [Board, Player] = GameState,
     nl, write('Current player: '), write(Player), nl,
     length(Board, Size),
-    print_column_headers(Size),
-    print_rows(Board, Size),  % Start printing from the bottom row
+    print_rows(Board, Size),  % start printing from the bottom row
+    print_column_headers(Size),  % print column headers at the bottom
     nl.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ADDICIONAL FUNCTIONS
@@ -40,7 +41,7 @@ print_column_headers(Size) :-
 print_column_numbers(C, Size) :-
     C =< Size,
     !,
-    format(' ~d ', [C]),
+    format('    ~d      ', [C]),
     NextC is C + 1,
     print_column_numbers(NextC, Size).
 print_column_numbers(_, _).
@@ -53,13 +54,35 @@ print_rows(Board, RowIndex) :-
         format('~|~` t~d~3+ ', [RowIndex]),
         print_row_cells(Row),
         nl,
+        (RowIndex > 1 ->  % skip printing row connections for the last row
+            length(Row, RowLength),
+            print_row_connections(RowIndex, RowLength)
+        ; true),
         NextRow is RowIndex - 1,
         print_rows(Board, NextRow)
     ; true).
-
 % print the individual cells of a row
 print_row_cells([]).
+print_row_cells([Cell]) :-  % Base case for the last cell
+    write(Cell).
 print_row_cells([Cell|Rest]) :-
-    write(Cell), write(' '),
+    write(Cell), write(' -- '),
     print_row_cells(Rest).
+
+% print row connections with separators
+print_row_connections(RowIndex, Size) :-
+    write('        |'),  % Always start with '|'
+    print_row_connections(RowIndex, 2, Size),
+    nl.
+
+print_row_connections(_, C, Size) :-
+    C > Size, !.
+print_row_connections(RowIndex, C, Size) :-
+    (RowIndex mod 2 =:= 1 ->
+        (C mod 2 =:= 0 -> write('    \\     |') ; write('    /     |'))
+    ;
+        (C mod 2 =:= 0 -> write('    /     |') ; write('    \\     |'))
+    ),
+    NextC is C + 1,
+    print_row_connections(RowIndex, NextC, Size).
 
