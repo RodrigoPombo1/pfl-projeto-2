@@ -38,12 +38,12 @@ print_column_headers(Size) :-
     print_column_numbers(1, Size),
     nl.
 
-print_column_numbers(C, Size) :-
-    C =< Size,
+print_column_numbers(ColumnIndex, Size) :-
+    ColumnIndex =< Size,
     !,
-    format('    ~d      ', [C]),
-    NextC is C + 1,
-    print_column_numbers(NextC, Size).
+    format('    ~d      ', [ColumnIndex]),
+    NextColumnIndex is ColumnIndex + 1,
+    print_column_numbers(NextColumnIndex, Size).
 print_column_numbers(_, _).
 
 % print rows from bottom to top
@@ -75,18 +75,27 @@ print_row_connections(RowIndex, Size) :-
     print_row_connections(RowIndex, 2, Size),
     nl.
 
-print_row_connections(_, C, Size) :-
-    C > Size, !.
-print_row_connections(RowIndex, C, Size) :-
+print_row_connections(_, ColumnIndex, Size) :-
+    ColumnIndex > Size, !.
+print_row_connections(RowIndex, ColumnIndex, Size) :-
+    % if
     (RowIndex mod 2 =:= 1 ->
-        (C mod 2 =:= 0 ->
+    % then
+        % if
+        (ColumnIndex mod 2 =:= 0 ->
+        % then
             write('   '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('   |')
+        % else
         ; write('   '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('   |'))
     ;
-        (C mod 2 =:= 0 ->
+    % else
+        % if
+        (ColumnIndex mod 2 =:= 0 ->
+        % then
             write('   '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('   |')
+        % else
         ; write('   '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('   |'))
     ),
-    NextC is C + 1,
-    print_row_connections(RowIndex, NextC, Size).
+    NextColumnIndex is ColumnIndex + 1,
+    print_row_connections(RowIndex, NextColumnIndex, Size).
 
