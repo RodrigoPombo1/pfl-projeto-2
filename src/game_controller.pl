@@ -59,12 +59,12 @@ value(_Board-Player, _Player, 0).  % Example: always return 0
 choose_move(Board-Player, PlayerType, Move) :-
     ( PlayerType = human ->
         ( \+ player_has_stack(Board, Player) ->
-            write('Enter coordinates X,Y to place a piece: '),
+            write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
             read_coords(X, Y),
             Move = place(X, Y)
         ;
             choose_stack(Board, Player, SX, SY),
-            write('Enter destination coordinates DX,DY: '),
+            write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
             read_coords(DX, DY),
             Move = move_stack(SX, SY, DX, DY)
         )
@@ -105,16 +105,16 @@ valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
     write('Checking move_stack from ('), write(SX), write(','), write(SY), write(') to ('), write(DX), write(','), write(DY), write(')'), nl,
     write('Height of stack at ('), write(SX), write(','), write(SY), write('): '), write(Height), nl,
     write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
-    Height =:= H,                  % ensure the stack is the highest
-    between(1, 5, DX),             % Ensure DX is within board limits
-    between(1, 5, DY),             % Ensure DY is within board limits
+    Height =:= H, % check the stack is the highest
+    between(1, 5, DX), % check DestinationColumnIndex is within board limits
+    between(1, 5, DY), % check DestinationRowIndex is within board limits
     is_adjacent(SX, SY, DX, DY),
     write('DX: '), write(DX), write(', DY: '), write(DY), nl,  % Debug print for DX and DY
     cell_empty(Board, DX, DY),
     write('Valid move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl.
 
 
-% Find the highest stack height for a player
+% find the highest stack height for a player
 highest_stack_height(Board, Player, MaxHeight) :-
     findall(H,
         ( member(Row, Board),
@@ -123,7 +123,7 @@ highest_stack_height(Board, Player, MaxHeight) :-
         ),
         Heights),
     ( Heights = []
-    -> MaxHeight = 1 % No stacks found, so height is 1 so that we don't get a instantiation error
+    -> MaxHeight = 1 % no stacks found, so MaxHeight is 1 so that we don't get a instantiation error
     ;  max_member(MaxHeight, Heights)
     ).
 
@@ -357,9 +357,9 @@ choose_stack(Board, Player, X, Y) :-
     ; Stacks = [(_,_,_)] 
       % if exactly one stack, pick it automatically
     -> Stacks = [(SX,SY,_H)],
-      write('Only one stack available. Automatically selected stack to move is ('), write(SX), write(','), write(SY), write(')'), nl,
+      write('Only one stack available. Automatically selected stack to move is (Column index: '), write(SX), write(', Row index: '), write(SY), write(')'), nl,
       X = SX, Y = SY
     ; % else, ask user for the stack’s position safely
-      write('Choose stack X,Y to move: '), read(X), read(Y)
+      write('Choose stack ColumnIndex,RowIndex to move: '), read(X), read(Y)
     ).
 
