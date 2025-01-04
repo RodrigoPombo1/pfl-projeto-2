@@ -79,9 +79,13 @@ print_row_connections(_, C, Size) :-
     C > Size, !.
 print_row_connections(RowIndex, C, Size) :-
     (RowIndex mod 2 =:= 1 ->
-        (C mod 2 =:= 0 -> write('    \\     |') ; write('    /     |'))
+        (C mod 2 =:= 0 ->
+            write('  '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('    |')
+        ; write('  '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('    |'))
     ;
-        (C mod 2 =:= 0 -> write('    /     |') ; write('    \\     |'))
+        (C mod 2 =:= 0 ->
+            write('  '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('    |')
+        ; write('  '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('    |'))
     ),
     NextC is C + 1,
     print_row_connections(RowIndex, NextC, Size).
