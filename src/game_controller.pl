@@ -52,9 +52,6 @@ value(_Board-Player, _Player, 0).  % Example: always return 0
 
 
 % chat gpt
-
-
-
 % This predicate receives the current game state and returns the move chosen by the computer player.
 % Level 1 should return a random valid move.
 % Level 2 should return the best play at the time (using a greedy algorithm), considering the evaluation of the game state as determined by the value/3 predicate.

@@ -13,17 +13,11 @@
 % REQUIRED FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% This predicate receives the current game state (including the player who will make the next move) and prints the game state to the terminal. Appealing and intuitive visualizations will be valued. Flexible game state representations and visualization predicates will also be valued, for instance those that work with any board size.
-% For uniformization purposes, coordinates should start at (1,1) at the lower left corner.
-% display_game(+GameState).
-
 
 % chat gpt
-% display_game(Board-Player) :-
-%     nl, write('Current player: '), write(Player), nl,
-%     print_board(Board, 1),
-%     nl.
-
+% display_game(+GameState)
+% This predicate receives the current game state (including the player who will make the next move) and prints the game state to the terminal. Appealing and intuitive visualizations will be valued. Flexible game state representations and visualization predicates will also be valued, for instance those that work with any board size.
+% For uniformization purposes, coordinates should start at (1,1) at the lower left corner.
 display_game(Board-Player) :-
     nl, write('Current player: '), write(Player), nl,
     length(Board, Size),
@@ -32,19 +26,12 @@ display_game(Board-Player) :-
     nl.
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ADDICIONAL FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% print_board([], _).
-% print_board([Row|Rest], N) :-
-%     write(Row), nl,
-%     N1 is N + 1,
-%     print_board(Rest, N1).
 
-
-% Print column headers from 1..Size
+% print column headers from 1..Size
 print_column_headers(Size) :-
     write('    '),
     print_column_numbers(1, Size),
@@ -58,7 +45,7 @@ print_column_numbers(C, Size) :-
     print_column_numbers(NextC, Size).
 print_column_numbers(_, _).
 
-% Now the top row is row=1, next row=2, etc.
+% now the top row is row=1, next row=2, etc.
 print_rows(Board, RowIndex) :-
     length(Board, Size),
     (RowIndex =< Size ->
@@ -71,6 +58,7 @@ print_rows(Board, RowIndex) :-
         print_rows(Board, NextRow)
     ; true ).
 
+% print the individual cells of a row
 print_row_cells([]).
 print_row_cells([Cell|Rest]) :-
     write(Cell), write(' '),
