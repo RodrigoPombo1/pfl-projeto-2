@@ -34,7 +34,7 @@ display_game(GameState) :-
 
 % print column headers from 1..Size
 print_column_headers(Size) :-
-    write('    '),
+    write('   '),
     print_column_numbers(1, Size),
     nl.
 
@@ -71,7 +71,7 @@ print_row_cells([Cell|Rest]) :-
 
 % print row connections with separators
 print_row_connections(RowIndex, Size) :-
-    write('        |'),  % Always start with '|'
+    write('       |'),  % Always start with '|'
     print_row_connections(RowIndex, 2, Size),
     nl.
 
@@ -80,12 +80,12 @@ print_row_connections(_, C, Size) :-
 print_row_connections(RowIndex, C, Size) :-
     (RowIndex mod 2 =:= 1 ->
         (C mod 2 =:= 0 ->
-            write('  '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('    |')
-        ; write('  '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('    |'))
+            write('   '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('   |')
+        ; write('   '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('   |'))
     ;
         (C mod 2 =:= 0 ->
-            write('  '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('    |')
-        ; write('  '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('    |'))
+            write('   '), put_code(0x23BD), put_code(0x23BC), put_code(0x23BB), put_code(0x23BA), write('   |')
+        ; write('   '), put_code(0x23BA), put_code(0x23BB), put_code(0x23BC), put_code(0x23BD), write('   |'))
     ),
     NextC is C + 1,
     print_row_connections(RowIndex, NextC, Size).
