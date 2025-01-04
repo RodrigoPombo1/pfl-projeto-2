@@ -20,10 +20,9 @@ initial_state(_Config, NewGameState) :-
     maplist(=(empty-0), Row),
     length(FullBoard, 5),
     maplist(=(Row), FullBoard),
-    Board = FullBoard,
+    reverse(FullBoard, Board),  % Reverse the board to have the bottom row first
     Player = white,
-    NewGameState = [Board, Player] .  % white always starts
-
+    NewGameState = [Board, Player].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ADDICIONAL FUNCTIONS

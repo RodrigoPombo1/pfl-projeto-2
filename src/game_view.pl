@@ -22,10 +22,9 @@ display_game(GameState) :-
     [Board, Player] = GameState,
     nl, write('Current player: '), write(Player), nl,
     length(Board, Size),
-    print_column_headers(Size),       % <--- Added
-    print_rows(Board, 1),            % <--- Changed call
+    print_column_headers(Size),
+    print_rows(Board, Size),  % Start printing from the bottom row
     nl.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ADDICIONAL FUNCTIONS
@@ -46,18 +45,17 @@ print_column_numbers(C, Size) :-
     print_column_numbers(NextC, Size).
 print_column_numbers(_, _).
 
-% now the top row is row=1, next row=2, etc.
+% print rows from bottom to top
 print_rows(Board, RowIndex) :-
-    length(Board, Size),
-    (RowIndex =< Size ->
+    (RowIndex > 0 ->
         nth1(RowIndex, Board, Row),
         % Print row number and then cells
         format('~|~` t~d~3+ ', [RowIndex]),
         print_row_cells(Row),
         nl,
-        NextRow is RowIndex + 1,
+        NextRow is RowIndex - 1,
         print_rows(Board, NextRow)
-    ; true ).
+    ; true).
 
 % print the individual cells of a row
 print_row_cells([]).
