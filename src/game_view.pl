@@ -18,7 +18,8 @@
 % display_game(+GameState)
 % This predicate receives the current game state (including the player who will make the next move) and prints the game state to the terminal. Appealing and intuitive visualizations will be valued. Flexible game state representations and visualization predicates will also be valued, for instance those that work with any board size.
 % For uniformization purposes, coordinates should start at (1,1) at the lower left corner.
-display_game(Board-Player) :-
+display_game(GameState) :-
+    [Board, Player] = GameState,
     nl, write('Current player: '), write(Player), nl,
     length(Board, Size),
     print_column_headers(Size),       % <--- Added

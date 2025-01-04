@@ -20,9 +20,9 @@
 % chat gpt
 % The main predicate, play/0, must be in the game.pl file and must give access to the game menu, which allows configuring the game type (H/H, H/PC, PC/H, or PC/PC), difficulty level(s) to be used by the artificial player(s), among other possible parameters, and start the game cycle.
 play :-
-    initial_state(_Config, Board-Player),
-    display_game(Board-Player),
-    game_cycle(Board-Player).
+    initial_state(_Config, GameState),
+    display_game(GameState),
+    game_cycle(GameState).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,15 +31,15 @@ play :-
 
 
 % game cycle that keeps asking for moves until the game is over
-game_cycle(Board-Player) :-
-    game_over(Board-Player, Winner), !,
+game_cycle(GameState) :-
+    game_over(GameState, Winner), !,
     congratulate(Winner).
 
-game_cycle(Board-Player) :-
-    choose_move(Board-Player, PlayerType, Move),
-    move(Board-Player, Move, NewBoard-NextPlayer),
-    display_game(NewBoard-NextPlayer),
-    game_cycle(NewBoard-NextPlayer).
+game_cycle(GameState) :-
+    choose_move(GameState, Level, Move),
+    move(GameState, Move, NewGameState),
+    display_game(NewGameState),
+    game_cycle(NewGameState).
 
 
 % print who the winner was when the game is over

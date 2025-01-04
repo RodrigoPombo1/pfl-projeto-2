@@ -18,29 +18,31 @@
 % chat gpt
 % move(+GameState, +Move, -NewGameState)
 % This predicate is responsible for move validation and execution, receiving the current game state and the move to be executed, and (if the move is valid) returns the new game state after the move is executed.
-move(Board-Player, Move, NewBoard-NextPlayer) :-
-    valid_move(Board, Player, Move),
-    apply_move(Board, Player, Move, TempBoard),
+move(GameState, Move, NewGameState) :-
+    [Board, Player] = GameState,
+    valid_move(GameState, Move),
+    apply_move(Board, Player, Move, NewBoard),
     next_player(Player, NextPlayer),
-    NewBoard = TempBoard.
+    NewGameState = [NewBoard, NextPlayer].
 
 
 
 % chat gpt
 % valid_moves(+GameState, -ListOfMoves)
 % This predicate receives the current game state, and returns a list of all possible valid moves.
-valid_moves(Board-Player, ListOfMoves) :-
-    findall(Move, valid_move(Board, Player, Move), ListOfMoves).
+valid_moves(GameState, ListOfMoves) :-
+    findall(Move, valid_move(GameState, Move), ListOfMoves).
 
 
 % chat gpt
 % game_over(+GameState, -Winner)
 % This predicate receives the current game state, and verifies whether the game is over, in which case it also identifies the winner (or draw).
 % Note that this predicate should not print anything to the terminal.
-game_over(Board-Player, Winner) :-
-    valid_moves(Board-Player, Moves),
+game_over(GameState, Winner) :-
+    [Board, Player] = GameState,
+    valid_moves(GameState, Moves),
     ( Moves = [] ->
-        next_player(Player, Winner)  % Current player cannot move, other player wins
+        next_player(Player, Winner)  % current player cannot move, other player wins
         ; fail
     ).
 
@@ -48,16 +50,18 @@ game_over(Board-Player, Winner) :-
 % chat gpt pois nao temos um jogo com um valor de vitoria ou derrota mas pode ser tipo quantas peças cada um tem, ou quantas peças o jogador tem a mais que o outro
 % value(+GameState, +Player, -Value)
 % This predicate receives the current game state and returns a value measuring how good/bad the current game state is to the given Player.
-value(_Board-Player, _Player, 0).  % Example: always return 0
+value(_GameState, _Player, 0).  % Example: always return 0
 
 
 % chat gpt
+% choose_move(+GameState, +Level, -Move)
 % This predicate receives the current game state and returns the move chosen by the computer player.
 % Level 1 should return a random valid move.
 % Level 2 should return the best play at the time (using a greedy algorithm), considering the evaluation of the game state as determined by the value/3 predicate.
 % For human players, it should interact with the user to read the move.
-choose_move(Board-Player, PlayerType, Move) :-
-    ( PlayerType = human ->
+choose_move(GameState, Level, Move) :-
+    [Board, Player] = GameState,
+    ( Level = human ->
         ( \+ player_has_stack(Board, Player) ->
             write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
             read_coords(X, Y),
@@ -68,12 +72,12 @@ choose_move(Board-Player, PlayerType, Move) :-
             read_coords(DX, DY),
             Move = move_stack(SX, SY, DX, DY)
         )
-    ; PlayerType = computer-1 ->
-        valid_moves(Board-Player, Moves),
+    ; Level = computer-1 ->
+        valid_moves(GameState, Moves),
         random_member(Move, Moves)
-    ; PlayerType = computer-2 ->
-        valid_moves(Board-Player, Moves),
-        pick_best_move(Board-Player, Moves, Move)
+    ; Level = computer-2 ->
+        valid_moves(GameState, Moves),
+        pick_best_move(GameState, Moves, Move)
     ).
 
 
@@ -82,12 +86,13 @@ choose_move(Board-Player, PlayerType, Move) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% Reads a pair “X,Y.” from the user and unifies X,Y with integer coordinates
+% reads “ColumnIndex,RowIndex.” from the user input
 read_coords(X, Y) :-
-    read((X,Y)).  % Now typing “1,1.” in the terminal gives (1,1) in X,Y
+    read((X,Y)).
 
 % chat gpt
-valid_move(Board, Player, place(X, Y)) :-
+valid_move(GameState, place(X, Y)) :-
+    [Board, Player] = GameState,
     \+ player_has_stack(Board, Player),
     length(Board, N),
     between(1, N, X),
@@ -96,7 +101,8 @@ valid_move(Board, Player, place(X, Y)) :-
     write('Valid move: place('), write(X), write(','), write(Y), write(')'), nl.
 
 
-valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
+valid_move(GameState, move_stack(SX, SY, DX, DY)) :-
+    [Board, Player] = GameState,
     player_has_stack(Board, Player),
     highest_stack_height(Board, Player, H),
     stack_belongs_to(Board, SX, SY, Player),
@@ -202,7 +208,7 @@ move_piece(Board, SX, SY, DX, DY, NewBoard) :-
 
 
 % Stub for best move
-pick_best_move(_State, [Move|_], Move).  % pick first
+pick_best_move(_GameState, [Move|_], Move).  % pick first
 
 
 % adds a piece on every friendly piece in line of sight (same row, column, or diagonal, with no pieces blocking)
