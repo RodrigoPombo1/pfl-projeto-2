@@ -61,6 +61,31 @@ value(_Board-Player, _Player, 0).  % Example: always return 0
 % Level 1 should return a random valid move.
 % Level 2 should return the best play at the time (using a greedy algorithm), considering the evaluation of the game state as determined by the value/3 predicate.
 % For human players, it should interact with the user to read the move.
+% choose_move(Board-Player, PlayerType, Move) :-
+%     ( PlayerType = human ->
+%         ( \+ player_has_stack(Board, Player) ->
+%             write('Enter coordinates X,Y to place a piece: '),
+%             read_coords(X, Y),
+%             Move = place(X, Y)
+%         ;
+%             write('Enter start coordinates SX,SY: '),
+%             read_coords(SX, SY),
+%             write('Enter destination coordinates DX,DY: '),
+%             read_coords(DX, DY),
+%             Move = move_stack(SX, SY, DX, DY)
+%         )
+%     ; PlayerType = computer-1 ->
+%         valid_moves(Board-Player, Moves),
+%         random_member(Move, Moves)
+%     ; PlayerType = computer-2 ->
+%         valid_moves(Board-Player, Moves),
+%         pick_best_move(Board-Player, Moves, Move)
+%     ).
+
+% This predicate receives the current game state and returns the move chosen by the computer player.
+% Level 1 should return a random valid move.
+% Level 2 should return the best play at the time (using a greedy algorithm), considering the evaluation of the game state as determined by the value/3 predicate.
+% For human players, it should interact with the user to read the move.
 choose_move(Board-Player, PlayerType, Move) :-
     ( PlayerType = human ->
         ( \+ player_has_stack(Board, Player) ->
@@ -68,8 +93,7 @@ choose_move(Board-Player, PlayerType, Move) :-
             read_coords(X, Y),
             Move = place(X, Y)
         ;
-            write('Enter start coordinates SX,SY: '),
-            read_coords(SX, SY),
+            choose_stack(Board, Player, SX, SY),
             write('Enter destination coordinates DX,DY: '),
             read_coords(DX, DY),
             Move = move_stack(SX, SY, DX, DY)
@@ -102,9 +126,16 @@ valid_move(Board, Player, place(X, Y)) :-
     cell_empty(Board, X, Y).
 
 
+% valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
+%     player_has_stack(Board, Player),
+%     is_adjacent(SX, SY, DX, DY),
+%     stack_belongs_to(Board, SX, SY, Player).
 valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
     player_has_stack(Board, Player),
+    nonvar(SX), nonvar(SY), nonvar(DX), nonvar(DY),
+    integer(SX), integer(SY), integer(DX), integer(DY),
     is_adjacent(SX, SY, DX, DY),
+    cell_empty(Board, DX, DY),  % Ensure destination is empty
     stack_belongs_to(Board, SX, SY, Player).
 
 
@@ -145,13 +176,6 @@ stack_belongs_to(Board, X, Y, Player) :-
     nth1(Y, Board, Row),
     nth1(X, Row, Player-Height),
     Height > 1.
-
-
-% Simple way to set a cell
-% set_cell(Board, X, Y, Value, NewBoard) :-
-%     nth1(Y, Board, OldRow),
-%     replace_in_list(OldRow, X, Value, NewRow),
-%     replace_in_list(Board, Y, NewRow, NewBoard).
 
 
 % Replace element at index I in list with V
@@ -198,13 +222,25 @@ add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
     increment_stacks(TempBoard, FriendlyCells, NewBoard).
 
 
+% % True if (CX, CY) is in same row, column, or diagonal with (X, Y), with no pieces in between
+% in_line_of_sight(Board, X, Y, CX, CY) :-
+%     nonvar(X), nonvar(Y), nonvar(CX), nonvar(CY),  % Ensure variables are instantiated
+%     integer(X), integer(Y), integer(CX), integer(CY),  % Ensure variables are integers
+%     (   CX = X, CY \= Y
+%     ;   CY = Y, CX \= X
+%     ;   abs(CX - X) =:= abs(CY - Y)  % Diagonal check
+%     ),
+%     write('Checking clear path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
+%     clear_path(Board, X, Y, CX, CY).
+
+% True if (CX, CY) is in same row, column, or diagonal with (X, Y), with no pieces in between
 % True if (CX, CY) is in same row, column, or diagonal with (X, Y), with no pieces in between
 in_line_of_sight(Board, X, Y, CX, CY) :-
     nonvar(X), nonvar(Y), nonvar(CX), nonvar(CY),  % Ensure variables are instantiated
     integer(X), integer(Y), integer(CX), integer(CY),  % Ensure variables are integers
     (   CX = X, CY \= Y
     ;   CY = Y, CX \= X
-    ;   abs(CX - X) =:= abs(CY - Y)  % Diagonal check
+    ;   ((1 is X mod 2, 1 is Y mod 2) ; (0 is X mod 2, 0 is Y mod 2)), abs(CX - X) =:= abs(CY - Y)  % Diagonal check only if both row and column are odd or both are even
     ),
     write('Checking clear path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
     clear_path(Board, X, Y, CX, CY).
@@ -330,7 +366,8 @@ choose_stack(Board, Player, X, Y) :-
     ; Stacks = [(_,_,_)] 
       % If exactly one stack, pick it automatically
     -> Stacks = [(SX,SY,_H)],
-       X = SX, Y = SY
+      write('Only one stack available. Automatically selected stack to move is ('), write(SX), write(','), write(SY), write(')'), nl,
+      X = SX, Y = SY
     ; % Otherwise, ask user for the stack’s position safely
       write('Choose stack X,Y to move: '), read(X), read(Y)
     ).
