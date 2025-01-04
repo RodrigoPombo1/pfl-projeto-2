@@ -20,7 +20,8 @@
 % chat gpt
 % The main predicate, play/0, must be in the game.pl file and must give access to the game menu, which allows configuring the game type (H/H, H/PC, PC/H, or PC/PC), difficulty level(s) to be used by the artificial player(s), among other possible parameters, and start the game cycle.
 play :-
-    initial_state(_Config, GameState),
+    GameConfig = [5],
+    initial_state(GameConfig, GameState),
     display_game(GameState),
     game_cycle(GameState).
 

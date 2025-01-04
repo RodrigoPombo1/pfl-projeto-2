@@ -61,6 +61,7 @@ value(_GameState, _Player, 0).  % Example: always return 0
 % For human players, it should interact with the user to read the move.
 choose_move(GameState, Level, Move) :-
     [Board, Player] = GameState,
+    length(Board, Size),
     ( Level = human ->
         ( \+ player_has_stack(Board, Player) ->
             write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
@@ -94,9 +95,9 @@ read_coords(X, Y) :-
 valid_move(GameState, place(X, Y)) :-
     [Board, Player] = GameState,
     \+ player_has_stack(Board, Player),
-    length(Board, N),
-    between(1, N, X),
-    between(1, N, Y),
+    length(Board, Size),
+    between(1, Size, X),
+    between(1, Size, Y),
     cell_empty(Board, X, Y),
     write('Valid move: place('), write(X), write(','), write(Y), write(')'), nl.
 
@@ -112,8 +113,9 @@ valid_move(GameState, move_stack(SX, SY, DX, DY)) :-
     write('Height of stack at ('), write(SX), write(','), write(SY), write('): '), write(Height), nl,
     write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
     Height =:= H, % check the stack is the highest
-    between(1, 5, DX), % check DestinationColumnIndex is within board limits
-    between(1, 5, DY), % check DestinationRowIndex is within board limits
+    length(Board, Size),
+    between(1, Size, DX), % check DestinationColumnIndex is within board limits
+    between(1, Size, DY), % check DestinationRowIndex is within board limits
     is_adjacent(SX, SY, DX, DY),
     write('DX: '), write(DX), write(', DY: '), write(DY), nl,  % Debug print for DX and DY
     cell_empty(Board, DX, DY),
