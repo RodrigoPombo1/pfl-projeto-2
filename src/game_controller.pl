@@ -41,8 +41,11 @@ valid_moves(GameState, ListOfMoves) :-
 game_over(GameState, Winner) :-
     [Board, Player] = GameState,
     valid_moves(GameState, Moves),
+    % if
     ( Moves = [] ->
+    % then
         next_player(Player, Winner)  % current player cannot move, other player wins
+    % else
         ; fail
     ).
 
@@ -62,21 +65,30 @@ value(_GameState, _Player, 0).  % Example: always return 0
 choose_move(GameState, Level, Move) :-
     [Board, Player] = GameState,
     length(Board, Size),
+    % if
     ( Level = human ->
+    % then
+        % if
         ( \+ player_has_stack(Board, Player) ->
+        % then
             write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
             read_coords(X, Y),
             Move = place(X, Y)
         ;
+        % else
             choose_stack(Board, Player, SX, SY),
             write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
             read_coords(DX, DY),
             Move = move_stack(SX, SY, DX, DY)
         )
+    % else if
     ; Level = computer-1 ->
+    % then
         valid_moves(GameState, Moves),
         random_member(Move, Moves)
+    % else if
     ; Level = computer-2 ->
+    % then
         valid_moves(GameState, Moves),
         pick_best_move(GameState, Moves, Move)
     ).
@@ -114,8 +126,8 @@ valid_move(GameState, move_stack(SX, SY, DX, DY)) :-
     write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
     Height =:= H, % check the stack is the highest
     length(Board, Size),
-    between(1, Size, DX), % check DestinationColumnIndex is within board limits
-    between(1, Size, DY), % check DestinationRowIndex is within board limits
+    between(1, Size, DX), % check DestinationColumnIndex is inside the board
+    between(1, Size, DY), % check DestinationRowIndex is inside the board
     is_adjacent(SX, SY, DX, DY),
     write('DX: '), write(DX), write(', DY: '), write(DY), nl,  % Debug print for DX and DY
     cell_empty(Board, DX, DY),
@@ -130,8 +142,11 @@ highest_stack_height(Board, Player, MaxHeight) :-
           H > 1
         ),
         Heights),
-    ( Heights = []
-    -> MaxHeight = 1 % no stacks found, so MaxHeight is 1 so that we don't get a instantiation error
+    % if
+    ( Heights = [] ->
+    % then
+    MaxHeight = 1 % no stacks found, so MaxHeight is 1 (it's necessary so that we don't get a instantiation error)
+    % else
     ;  max_member(MaxHeight, Heights)
     ).
 
@@ -166,12 +181,12 @@ next_player(black, white).
 
 % check if two cells are adjacent (including diagonals when they exist)
 is_adjacent(SX, SY, DX, DY) :-
-    nonvar(SX), nonvar(SY), nonvar(DX), nonvar(DY),  % Ensure variables are instantiated
+    nonvar(SX), nonvar(SY), nonvar(DX), nonvar(DY),  % check variables are instantiated
     DeltaX is abs(SX - DX),
     DeltaY is abs(SY - DY),
-    (   DeltaX + DeltaY =:= 1  % Horizontal or vertical move
-    ;   DeltaX =:= 1, DeltaY =:= 1,  % Diagonal move
-        ((1 is SX mod 2, 1 is SY mod 2) ; (0 is SX mod 2, 0 is SY mod 2))  % Both coordinates are odd or both are even
+    (   DeltaX + DeltaY =:= 1  % horizontal or vertical move
+    ;   DeltaX =:= 1, DeltaY =:= 1,  % diagonal move
+        ((1 is SX mod 2, 1 is SY mod 2) ; (0 is SX mod 2, 0 is SY mod 2))  % noth coordinates are odd or both are even
     ).
 
 
@@ -179,7 +194,7 @@ is_adjacent(SX, SY, DX, DY) :-
 player_has_stack(Board, Player) :-
     member(Row, Board),
     member(Player-Height, Row),
-    Height > 1, !.  % A stack has height > 1
+    Height > 1, !.  % because stack has height > 1
 
 
 % check if stack belongs to the player
@@ -248,16 +263,22 @@ in_line_of_sight(Board, X, Y, CX, CY) :-
 % checks path from (X,Y) to (CX,CY) has no pieces in between
 clear_path(Board, X, Y, CX, CY) :-
     nonvar(X), nonvar(Y), nonvar(CX), nonvar(CY),  % check variables are instantiated
-    (   X = CX
-    ->  sign(CY - Y, Step),
+    % if
+    (X = CX ->
+    % then
+        sign(CY - Y, Step),
         write('Checking vertical path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
         check_vertical(Board, X, Y, CY, Step)
-    ;   Y = CY
-    ->  sign(CX - X, Step),
+    % else if
+    ; Y = CY ->
+    % then
+        sign(CX - X, Step),
         write('Checking horizontal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
         check_horizontal(Board, Y, X, CX, Step)
-    ;   abs(CX - X) =:= abs(CY - Y)
-    ->  sign(CX - X, StepX),
+    % else if
+    ; abs(CX - X) =:= abs(CY - Y) ->
+    % then
+        sign(CX - X, StepX),
         sign(CY - Y, StepY),
         write('Checking diagonal path from ('), write(X), write(','), write(Y), write(') to ('), write(CX), write(','), write(CY), write(')'), nl,
         check_diagonal(Board, X, Y, CX, CY, StepX, StepY)
@@ -267,9 +288,12 @@ clear_path(Board, X, Y, CX, CY) :-
 % check vertically from Y to CY, ensuring no blocking piece
 check_vertical(Board, X, Y, CY, Step) :-
     Next is Y + Step,
-    (   Next =:= CY
-    ->  true
-    ;   nth1(Next, Board, Row),
+    % if
+    (Next =:= CY ->
+    % then
+        true
+    % else
+    ; nth1(Next, Board, Row),
         nth1(X, Row, empty-0),
         write('Vertical path clear at ('), write(X), write(','), write(Next), write(')'), nl,
         check_vertical(Board, X, Next, CY, Step)
@@ -279,9 +303,12 @@ check_vertical(Board, X, Y, CY, Step) :-
 % check horizontally from X to CX, ensuring no blocking piece
 check_horizontal(Board, Y, X, CX, Step) :-
     Next is X + Step,
-    (   Next =:= CX
-    ->  true
-    ;   nth1(Y, Board, Row),
+    % if
+    (Next =:= CX ->
+    % then
+        true
+    % else
+    ; nth1(Y, Board, Row),
         nth1(Next, Row, empty-0),
         write('Horizontal path clear at ('), write(Next), write(','), write(Y), write(')'), nl,
         check_horizontal(Board, Y, Next, CX, Step)
@@ -292,8 +319,11 @@ check_horizontal(Board, Y, X, CX, Step) :-
 check_diagonal(Board, X, Y, CX, CY, StepX, StepY) :-
     NextX is X + StepX,
     NextY is Y + StepY,
-    (   NextX =:= CX, NextY =:= CY
-    ->  true
+    % if
+    (NextX =:= CX, NextY =:= CY ->
+    % then
+        true
+    % else
     ;   nth1(NextY, Board, Row),
         nth1(NextX, Row, empty-0),
         write('Diagonal path clear at ('), write(NextX), write(','), write(NextY), write(')'), nl,
@@ -322,11 +352,16 @@ increment_stacks(Board, [(CX, CY)|Rest], NewBoard) :-
 
 % get the sign of a number
 sign(Diff, Sign) :-
-    (   Diff > 0
-    ->  Sign is 1
-    ;   Diff < 0
-    ->  Sign is -1
-    ;   Sign is 0
+    % if
+    (Diff > 0 ->
+    % then
+        Sign is 1
+    % else if
+    ; Diff < 0 ->
+    % then
+        Sign is -1
+    % else
+    ; Sign is 0
     ).
 
 
@@ -360,14 +395,18 @@ choose_stack(Board, Player, X, Y) :-
               Color = Player,
               Height > 1
             ), Stacks),
-    ( Stacks = []
-    -> fail  % no stacks, fallback to placement
-    ; Stacks = [(_,_,_)] 
-      % if exactly one stack, pick it automatically
-    -> Stacks = [(SX,SY,_H)],
-      write('Only one stack available. Automatically selected stack to move is (Column index: '), write(SX), write(', Row index: '), write(SY), write(')'), nl,
-      X = SX, Y = SY
-    ; % else, ask user for the stack’s position safely
+    % if
+    (Stacks = [] ->
+    % then
+        fail  % no stacks, fallback to placement
+    % else if
+    ; Stacks = [(_,_,_)] -> % if exactly one stack, pick it automatically
+    % then
+        Stacks = [(SX,SY,_H)],
+        write('Only one stack available. Automatically selected stack to move is (Column index: '), write(SX), write(', Row index: '), write(SY), write(')'), nl,
+        X = SX, Y = SY
+    % else
+    ; % we need to ask the user to choose a stack
       write('Choose stack ColumnIndex,RowIndex to move: '), read(X), read(Y)
     ).
 
