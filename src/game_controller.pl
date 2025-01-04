@@ -2,6 +2,7 @@
 
 % import modules
 :- use_module(library(between)). % to validate user input
+:- use_module(library(lists)).
 
 % import other project files
 :- consult(game_model).
@@ -123,20 +124,99 @@ valid_move(Board, Player, place(X, Y)) :-
     length(Board, N),
     between(1, N, X),
     between(1, N, Y),
-    cell_empty(Board, X, Y).
+    cell_empty(Board, X, Y),
+    write('Valid move: place('), write(X), write(','), write(Y), write(')'), nl.
 
 
 % valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
 %     player_has_stack(Board, Player),
 %     is_adjacent(SX, SY, DX, DY),
 %     stack_belongs_to(Board, SX, SY, Player).
+% valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
+%     player_has_stack(Board, Player),
+%     nonvar(SX), nonvar(SY), nonvar(DX), nonvar(DY),
+%     integer(SX), integer(SY), integer(DX), integer(DY),
+%     is_adjacent(SX, SY, DX, DY),
+%     cell_empty(Board, DX, DY),  % Ensure destination is empty
+%     stack_belongs_to(Board, SX, SY, Player).
+
+% valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
+%     player_has_stack(Board, Player),
+%     highest_stack_height(Board, Player, H),
+%     stack_belongs_to(Board, SX, SY, Player),
+%     nth1(SY, Board, Row),
+%     nth1(SX, Row, Player-Height),
+%     write('Checking move_stack from ('), write(SX), write(','), write(SY), write(') to ('), write(DX), write(','), write(DY), write(')'), nl,
+%     write('Height of stack at ('), write(SX), write(','), write(SY), write('): '), write(Height), nl,
+%     write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
+%     Height =:= H,                  % ensure the stack is the highest
+%     is_adjacent(SX, SY, DX, DY),
+%     cell_empty(Board, DX, DY),
+%     write('Valid move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl.
+
+% valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
+%     player_has_stack(Board, Player),
+%     highest_stack_height(Board, Player, H),
+%     stack_belongs_to(Board, SX, SY, Player),
+%     nth1(SY, Board, Row),
+%     nth1(SX, Row, Player-Height),
+%     write('Checking move_stack from ('), write(SX), write(','), write(SY), write(') to ('), write(DX), write(','), write(DY), write(')'), nl,
+%     write('Height of stack at ('), write(SX), write(','), write(SY), write('): '), write(Height), nl,
+%     write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
+%     Height =:= H,                  % ensure the stack is the highest
+%     is_adjacent(SX, SY, DX, DY),
+%     write('DX: '), write(DX), write(', DY: '), write(DY), nl,  % Debug print for DX and DY
+%     cell_empty(Board, DX, DY),
+%     write('Valid move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl.
+
+
+% valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
+%     player_has_stack(Board, Player),
+%     highest_stack_height(Board, Player, H),
+%     stack_belongs_to(Board, SX, SY, Player),
+%     nth1(SY, Board, Row),
+%     nth1(SX, Row, Player-Height),
+%     write('Checking move_stack from ('), write(SX), write(','), write(SY), write(') to ('), write(DX), write(','), write(DY), write(')'), nl,
+%     write('Height of stack at ('), write(SX), write(','), write(SY), write('): '), write(Height), nl,
+%     write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
+%     Height =:= H,                  % ensure the stack is the highest
+%     between(1, 5, DX),             % Ensure DX is within board limits
+%     between(1, 5, DY),             % Ensure DY is within board limits
+%     is_adjacent(SX, SY, DX, DY),
+%     write('DX: '), write(DX), write(', DY: '), write(DY), nl,  % Debug print for DX and DY
+%     cell_empty(Board, DX, DY),
+%     write('Valid move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl.
+
 valid_move(Board, Player, move_stack(SX, SY, DX, DY)) :-
     player_has_stack(Board, Player),
-    nonvar(SX), nonvar(SY), nonvar(DX), nonvar(DY),
-    integer(SX), integer(SY), integer(DX), integer(DY),
+    highest_stack_height(Board, Player, H),
+    stack_belongs_to(Board, SX, SY, Player),
+    nth1(SY, Board, Row),
+    nth1(SX, Row, Player-Height),
+    write('Checking move_stack from ('), write(SX), write(','), write(SY), write(') to ('), write(DX), write(','), write(DY), write(')'), nl,
+    write('Height of stack at ('), write(SX), write(','), write(SY), write('): '), write(Height), nl,
+    write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
+    Height =:= H,                  % ensure the stack is the highest
+    between(1, 5, DX),             % Ensure DX is within board limits
+    between(1, 5, DY),             % Ensure DY is within board limits
     is_adjacent(SX, SY, DX, DY),
-    cell_empty(Board, DX, DY),  % Ensure destination is empty
-    stack_belongs_to(Board, SX, SY, Player).
+    write('DX: '), write(DX), write(', DY: '), write(DY), nl,  % Debug print for DX and DY
+    cell_empty(Board, DX, DY),
+    write('Valid move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl.
+
+
+% Find the highest stack height for a player
+highest_stack_height(Board, Player, MaxHeight) :-
+    findall(H,
+        ( member(Row, Board),
+          member(Player-H, Row),
+          H > 1
+        ),
+        Heights),
+    ( Heights = []
+    -> MaxHeight = 1 % No stacks found, so height is 1 so that we don't get a instantiation error
+    ;  max_member(MaxHeight, Heights)
+    ).
 
 
 % Applies a move to the board
@@ -146,10 +226,23 @@ apply_move(Board, Player, place(X, Y), NewBoard) :-
     add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard).
 
 
+% apply_move(Board, Player, move_stack(SX, SY, DX, DY), NewBoard) :-
+%     write('Applying move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl,
+%     move_piece(Board, SX, SY, DX, DY, TempBoard),
+%     add_stack_line_of_sight(TempBoard, Player, DX, DY, NewBoard).
 apply_move(Board, Player, move_stack(SX, SY, DX, DY), NewBoard) :-
     write('Applying move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl,
-    move_piece(Board, SX, SY, DX, DY, TempBoard),
-    add_stack_line_of_sight(TempBoard, Player, DX, DY, NewBoard).
+    move_piece(Board, SX, SY, DX, DY, TempBoard1),
+    add_stack_line_of_sight(TempBoard1, Player, DX, DY, TempBoard2),
+    remove_piece_from_stack(TempBoard2, SX, SY, NewBoard).
+
+% Remove one piece from the stack at (SX, SY)
+remove_piece_from_stack(Board, SX, SY, NewBoard) :-
+    nth1(SY, Board, OldRow),
+    nth1(SX, OldRow, Color-Height),
+    NewHeight is Height - 1,
+    replace_in_list(OldRow, SX, Color-NewHeight, UpdatedRow),
+    replace_in_list(Board, SY, UpdatedRow, NewBoard).
 
 
 % Switch players
@@ -158,10 +251,19 @@ next_player(black, white).
 
 
 % check if the next cell is on the board
+% is_adjacent(SX, SY, DX, DY) :-
+%     nonvar(SX), nonvar(SY), nonvar(DX), nonvar(DY),  % Ensure variables are instantiated
+%     DeltaX is abs(SX - DX),
+%     DeltaY is abs(SY - DY),
+%     DeltaX + DeltaY =:= 1.
 is_adjacent(SX, SY, DX, DY) :-
+    nonvar(SX), nonvar(SY), nonvar(DX), nonvar(DY),  % Ensure variables are instantiated
     DeltaX is abs(SX - DX),
     DeltaY is abs(SY - DY),
-    DeltaX + DeltaY =:= 1.
+    (   DeltaX + DeltaY =:= 1  % Horizontal or vertical move
+    ;   DeltaX =:= 1, DeltaY =:= 1,  % Diagonal move
+        ((1 is SX mod 2, 1 is SY mod 2) ; (0 is SX mod 2, 0 is SY mod 2))  % Both coordinates are odd or both are even
+    ).
 
 
 % check if current player has at least one stack
