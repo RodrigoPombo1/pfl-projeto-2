@@ -72,16 +72,9 @@ choose_move(GameState, Level, Move) :-
         ( \+ player_has_stack(Board, Player) ->
         % then
             ask_user_where_to_place_piece(Board, Size, Move)
-            % write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
-            % read_coords(X, Y),
-            % Move = place(X, Y)
         ;
         % else
             ask_user_where_to_move_stack(Board, Player, Size, Move)
-            % choose_stack(Board, Player, SX, SY),
-            % write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
-            % read_coords(DX, DY),
-            % Move = move_stack(SX, SY, DX, DY)
         )
     % else if
     ; Level = computer-1 ->
@@ -426,30 +419,6 @@ set_cell(Board, X, Y, Value, NewBoard) :-
     replace_in_list(OldRow, X, Value, NewRow),
     replace_in_list(Board, Y, NewRow, NewBoard).
 
-
-% % pick the stack's coordinates (X,Y) making sure they are instantiated
-% choose_stack(Board, Player, X, Y) :-
-%     % find all stacks for Player
-%     findall((SX,SY,Height),
-%             ( nth1(SY, Board, Row),
-%               nth1(SX, Row, Color-Height),
-%               Color = Player,
-%               Height > 1
-%             ), Stacks),
-%     % if
-%     (Stacks = [] ->
-%     % then
-%         fail  % no stacks, fallback to placement
-%     % else if
-%     ; Stacks = [(_,_,_)] -> % if exactly one stack, pick it automatically
-%     % then
-%         Stacks = [(SX,SY,_H)],
-%         write('Only one stack available. Automatically selected stack to move is (Column index: '), write(SX), write(', Row index: '), write(SY), write(')'), nl,
-%         X = SX, Y = SY
-%     % else
-%     ; % we need to ask the user to choose a stack
-%       write('Choose stack ColumnIndex,RowIndex to move: '), read(X), read(Y)
-%     ).
 
 % pick the stack's coordinates (X,Y) making sure they are instantiated
 choose_stack(Board, Player, X, Y) :-
