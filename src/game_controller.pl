@@ -71,15 +71,17 @@ choose_move(GameState, Level, Move) :-
         % if
         ( \+ player_has_stack(Board, Player) ->
         % then
-            write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
-            read_coords(X, Y),
-            Move = place(X, Y)
+            ask_user_where_to_place_piece(Board, Size, Move)
+            % write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
+            % read_coords(X, Y),
+            % Move = place(X, Y)
         ;
         % else
-            choose_stack(Board, Player, SX, SY),
-            write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
-            read_coords(DX, DY),
-            Move = move_stack(SX, SY, DX, DY)
+            ask_user_where_to_move_stack(Board, Player, Size, Move)
+            % choose_stack(Board, Player, SX, SY),
+            % write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
+            % read_coords(DX, DY),
+            % Move = move_stack(SX, SY, DX, DY)
         )
     % else if
     ; Level = computer-1 ->
@@ -98,6 +100,45 @@ choose_move(GameState, Level, Move) :-
 % ADDICIONAL FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+ask_user_where_to_place_piece(Board, Size, Move) :-
+    repeat,
+    write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
+    read_coords(X, Y),
+    ( between(1, Size, X), between(1, Size, Y) ->
+        ( cell_empty(Board, X, Y) ->
+            Move = place(X, Y),
+            !
+        ; write('Invalid move: cell is not empty.'), nl,
+          display_valid_moves(Board, Size),
+          fail  % fail to repeat the loop
+        )
+    ; write('Invalid input: coordinates must be between 1 and '), write(Size), nl,
+      display_valid_moves(Board, Size),
+      fail  % fail to repeat the loop
+    ).
+
+ask_user_where_to_move_stack(Board, Player, Size, Move) :-
+    repeat,
+    choose_stack(Board, Player, SX, SY),
+    write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
+    read_coords(DX, DY),
+    ( between(1, Size, DX), between(1, Size, DY) ->
+        ( valid_move([Board, Player], move_stack(SX, SY, DX, DY)) ->
+            Move = move_stack(SX, SY, DX, DY),
+            !
+        ; write('Invalid move: move is not valid.'), nl,
+            display_valid_moves(Board, Size),
+            fail  % fail to repeat the loop
+        )
+    ; write('Invalid input: coordinates must be between 1 and '), write(Size), nl,
+        display_valid_moves(Board, Size),
+        fail  % fail to repeat the loop
+    ).
+
+
+display_valid_moves(Board, Size) :-
+    findall(place(X, Y), (between(1, Size, X), between(1, Size, Y), cell_empty(Board, X, Y)), ValidMoves),
+    write('Valid moves: '), write(ValidMoves), nl.
 
 % reads “ColumnIndex,RowIndex.” from the user input
 read_coords(X, Y) :-
@@ -386,6 +427,30 @@ set_cell(Board, X, Y, Value, NewBoard) :-
     replace_in_list(Board, Y, NewRow, NewBoard).
 
 
+% % pick the stack's coordinates (X,Y) making sure they are instantiated
+% choose_stack(Board, Player, X, Y) :-
+%     % find all stacks for Player
+%     findall((SX,SY,Height),
+%             ( nth1(SY, Board, Row),
+%               nth1(SX, Row, Color-Height),
+%               Color = Player,
+%               Height > 1
+%             ), Stacks),
+%     % if
+%     (Stacks = [] ->
+%     % then
+%         fail  % no stacks, fallback to placement
+%     % else if
+%     ; Stacks = [(_,_,_)] -> % if exactly one stack, pick it automatically
+%     % then
+%         Stacks = [(SX,SY,_H)],
+%         write('Only one stack available. Automatically selected stack to move is (Column index: '), write(SX), write(', Row index: '), write(SY), write(')'), nl,
+%         X = SX, Y = SY
+%     % else
+%     ; % we need to ask the user to choose a stack
+%       write('Choose stack ColumnIndex,RowIndex to move: '), read(X), read(Y)
+%     ).
+
 % pick the stack's coordinates (X,Y) making sure they are instantiated
 choose_stack(Board, Player, X, Y) :-
     % find all stacks for Player
@@ -395,18 +460,25 @@ choose_stack(Board, Player, X, Y) :-
               Color = Player,
               Height > 1
             ), Stacks),
-    % if
     (Stacks = [] ->
-    % then
         fail  % no stacks, fallback to placement
-    % else if
-    ; Stacks = [(_,_,_)] -> % if exactly one stack, pick it automatically
-    % then
+    ; Stacks = [(_,_,_)] ->  % if exactly one stack, pick it automatically
         Stacks = [(SX,SY,_H)],
         write('Only one stack available. Automatically selected stack to move is (Column index: '), write(SX), write(', Row index: '), write(SY), write(')'), nl,
         X = SX, Y = SY
-    % else
-    ; % we need to ask the user to choose a stack
-      write('Choose stack ColumnIndex,RowIndex to move: '), read(X), read(Y)
+    ; repeat,
+        write('Choose stack ColumnIndex,RowIndex to move: '),
+        read_coords(SX, SY),
+        ( member((SX, SY, _), Stacks) ->
+            X = SX, Y = SY,
+            !
+        ; write('Invalid stack selection. Please choose a valid stack.'), nl,
+          display_valid_stacks(Stacks),
+          fail  % fail to repeat the loop
+        )
     ).
+
+% display all valid stacks
+display_valid_stacks(Stacks) :-
+    write('Valid stacks: '), write(Stacks), nl.
 
