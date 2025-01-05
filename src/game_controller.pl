@@ -63,8 +63,28 @@ game_over(GameState, Winner) :-
 % chat gpt pois nao temos um jogo com um valor de vitoria ou derrota mas pode ser tipo quantas peças cada um tem, ou quantas peças o jogador tem a mais que o outro
 % value(+GameState, +Player, -Value)
 % This predicate receives the current game state and returns a value measuring how good/bad the current game state is to the given Player.
-value(_GameState, _Player, 0).  % Example: always return 0
+value(GameState, Player, Value) :-
+    % Calculate the number of valid moves for the given player
+    valid_moves(GameState, PlayerMoves),
+    length(PlayerMoves, PlayerMoveCount),
 
+    % Calculate the number of valid moves for the opponent
+    next_player(Player, Opponent),
+    valid_moves([GameState, Opponent], OpponentMoves),
+    length(OpponentMoves, OpponentMoveCount),
+
+    % Calculate the value as the difference between the player's and the opponent's move counts
+    % if this is true then it means that we will win the game because the opponent can't move
+    (OpponentMoveCount =:= 0 ->
+    % then
+        Value is 10000
+    % else if this is true then it means that we will likely lose the game because we can't move, unless the opponent move allows us to, and so we should avoid this move at all costs
+    ; PlayerMoveCount =:= 0, OpponentMoveCount > 0 ->
+    % then
+        Value is -10000
+    % else just do the standard where we try to get more movement options and avoid the opponent from having movement options
+    ; Value is PlayerMoveCount - OpponentMoveCount
+    ).
 
 % chat gpt
 % choose_move(+GameState, +Level, -Move)
@@ -269,8 +289,14 @@ move_piece(Board, SX, SY, DX, DY, NewBoard) :-
 
 
 % Stub for best move
-pick_best_move(_GameState, [Move|_], Move).  % pick first
-
+pick_best_move(GameState, Moves, BestMove) :-
+    [Board, Player] = GameState,
+    findall(Value-Move,
+        (member(Move, Moves),
+         move(GameState, Move, NewGameState),
+         value(NewGameState, Player, Value)),
+        MoveValues),
+    max_member(_-BestMove, MoveValues).
 
 % adds a piece on every friendly piece in line of sight (same row, column, or diagonal, with no pieces blocking)
 add_stack_line_of_sight(TempBoard, Player, X, Y, NewBoard) :-
