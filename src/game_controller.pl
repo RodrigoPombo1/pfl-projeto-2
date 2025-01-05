@@ -126,10 +126,10 @@ choose_move(GameState, Level, Move) :-
 ask_user_where_to_place_piece(Board, Size, Move) :-
     repeat,
     write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
-    read_coords(X, Y),
-    ( between(1, Size, X), between(1, Size, Y) ->
-        ( cell_empty(Board, X, Y) ->
-            Move = place(X, Y),
+    read_coords(ColumnIndex, RowIndex),
+    ( between(1, Size, ColumnIndex), between(1, Size, RowIndex) ->
+        ( cell_empty(Board, ColumnIndex, RowIndex) ->
+            Move = place(ColumnIndex, RowIndex),
             !
         ; write('Invalid move: cell is not empty.'), nl,
           display_valid_moves(Board, Size),
@@ -142,12 +142,12 @@ ask_user_where_to_place_piece(Board, Size, Move) :-
 
 ask_user_where_to_move_stack(Board, Player, Size, Move) :-
     repeat,
-    choose_stack(Board, Player, SX, SY),
+    choose_stack(Board, Player, SourceColumnIndex, SourceRowIndex),
     write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
-    read_coords(DX, DY),
-    ( between(1, Size, DX), between(1, Size, DY) ->
-        ( valid_move([Board, Player], move_stack(SX, SY, DX, DY)) ->
-            Move = move_stack(SX, SY, DX, DY),
+    read_coords(DestinationColumnIndex, DestinationRowIndex),
+    ( between(1, Size, DestinationColumnIndex), between(1, Size, DestinationRowIndex) ->
+        ( valid_move([Board, Player], move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) ->
+            Move = move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex),
             !
         ; write('Invalid move: move is not valid.'), nl,
             display_valid_moves(Board, Size),
@@ -160,7 +160,7 @@ ask_user_where_to_move_stack(Board, Player, Size, Move) :-
 
 
 display_valid_moves(Board, Size) :-
-    findall(place(X, Y), (between(1, Size, X), between(1, Size, Y), cell_empty(Board, X, Y)), ValidMoves),
+    findall(place(ColumnIndex, RowIndex), (between(1, Size, ColumnIndex), between(1, Size, RowIndex), cell_empty(Board, ColumnIndex, RowIndex)), ValidMoves),
     write('Valid moves: '), write(ValidMoves), nl.
 
 % reads “ColumnIndex,RowIndex.” from the user input
@@ -168,34 +168,34 @@ read_coords(X, Y) :-
     read((X,Y)).
 
 % chat gpt
-valid_move(GameState, place(X, Y)) :-
+valid_move(GameState, place(ColumnIndex, RowIndex)) :-
     [Board, Player] = GameState,
     \+ player_has_stack(Board, Player),
     length(Board, Size),
-    between(1, Size, X),
-    between(1, Size, Y),
-    cell_empty(Board, X, Y),
-    write('Valid move: place('), write(X), write(','), write(Y), write(')'), nl.
+    between(1, Size, ColumnIndex),
+    between(1, Size, RowIndex),
+    cell_empty(Board, ColumnIndex, RowIndex),
+    write('Valid move: place('), write(ColumnIndex), write(','), write(RowIndex), write(')'), nl.
 
 
-valid_move(GameState, move_stack(SX, SY, DX, DY)) :-
+valid_move(GameState, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) :-
     [Board, Player] = GameState,
     player_has_stack(Board, Player),
     highest_stack_height(Board, Player, H),
-    stack_belongs_to(Board, SX, SY, Player),
-    nth1(SY, Board, Row),
-    nth1(SX, Row, Player-Height),
-    write('Checking move_stack from ('), write(SX), write(','), write(SY), write(') to ('), write(DX), write(','), write(DY), write(')'), nl,
-    write('Height of stack at ('), write(SX), write(','), write(SY), write('): '), write(Height), nl,
+    stack_belongs_to(Board, SourceColumnIndex, SourceRowIndex, Player),
+    nth1(SourceRowIndex, Board, Row),
+    nth1(SourceColumnIndex, Row, Player-Height),
+    write('Checking move_stack from ('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write(') to ('), write(DestinationColumnIndex), write(','), write(DestinationRowIndex), write(')'), nl,
+    write('Height of stack at ('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write('): '), write(Height), nl,
     write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
     Height =:= H, % check the stack is the highest
     length(Board, Size),
-    between(1, Size, DX), % check DestinationColumnIndex is inside the board
-    between(1, Size, DY), % check DestinationRowIndex is inside the board
-    is_adjacent(SX, SY, DX, DY),
-    write('DX: '), write(DX), write(', DY: '), write(DY), nl,  % Debug print for DX and DY
-    cell_empty(Board, DX, DY),
-    write('Valid move: move_stack('), write(SX), write(','), write(SY), write(','), write(DX), write(','), write(DY), write(')'), nl.
+    between(1, Size, DestinationColumnIndex), % check DestinationColumnIndex is inside the board
+    between(1, Size, DestinationRowIndex), % check DestinationRowIndex is inside the board
+    is_adjacent(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex),
+    write('DestinationColumnIndex: '), write(DestinationColumnIndex), write(', DestinationRowIndex: '), write(DestinationRowIndex), nl,  % Debug print for DestinationColumnIndex and DestinationRowIndex
+    cell_empty(Board, DestinationColumnIndex, DestinationRowIndex),
+    write('Valid move: move_stack('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write(','), write(DestinationColumnIndex), write(','), write(DestinationRowIndex), write(')'), nl.
 
 
 % find the highest stack height for a player
