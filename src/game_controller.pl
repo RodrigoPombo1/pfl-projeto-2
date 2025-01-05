@@ -77,12 +77,12 @@ choose_move(GameState, Level, Move) :-
             ask_user_where_to_move_stack(Board, Player, Size, Move)
         )
     % else if
-    ; Level = computer-1 ->
+    ; Level = computer_1 ->
     % then
         valid_moves(GameState, Moves),
         random_member(Move, Moves)
     % else if
-    ; Level = computer-2 ->
+    ; Level = computer_2 ->
     % then
         valid_moves(GameState, Moves),
         pick_best_move(GameState, Moves, Move)
