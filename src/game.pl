@@ -3,6 +3,7 @@
 % import modules
 :- use_module(library(lists)).
 :- use_module(library(random)).
+:- use_module(library(system), [now/1]).
 
 % import other project files
 :- consult(menu_controller).
@@ -20,6 +21,7 @@
 % chat gpt
 % The main predicate, play/0, must be in the game.pl file and must give access to the game menu, which allows configuring the game type (H/H, H/PC, PC/H, or PC/PC), difficulty level(s) to be used by the artificial player(s), among other possible parameters, and start the game cycle.
 play :-
+    init_random_state,
     menu(NewGameConfig),
     initial_state(NewGameConfig, GameState),
     display_game(GameState),
@@ -28,6 +30,11 @@ play :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ADDICIONAL FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% start a new random state based on the current time so that it is different everytime we run the program, we got it from here https://sicstus.sics.se/sicstus/docs/latest/html/sicstus.html/lib_002drandom.html
+init_random_state :-
+    now(X),
+    setrand(X).
 
 % game_cycle(+GameState, +GameConfig)
 % game cycle that keeps asking for moves until the game is over

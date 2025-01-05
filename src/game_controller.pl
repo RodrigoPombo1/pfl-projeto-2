@@ -3,6 +3,7 @@
 % import modules
 :- use_module(library(between)). % to validate user input
 :- use_module(library(lists)).
+:- use_module(library(random)).
 
 % import other project files
 :- consult(game_model).
