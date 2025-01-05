@@ -302,14 +302,14 @@ pick_best_move(GameState, Moves, BestMove) :-
 add_stack_line_of_sight(TempBoard, Player, ColumnIndex, Y, NewBoard) :-
     write('Adding stack line of sight for ('), write(ColumnIndex), write(','), write(Y), write(')'), nl,
     % find all positions in line of sight of (ColumnIndex,Y) belonging to Player
-    findall((CColumnIndex, CY),
+    findall((CheckColumnIndex, CY),
         (   member(Row, TempBoard),
             nth1(CY, TempBoard, Row),
-            nth1(CColumnIndex, Row, _),
-            (CColumnIndex \= ColumnIndex ; CY \= Y),  % piece does not count itself
-            write('Checking in line of sight for ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CColumnIndex), write(','), write(CY), write(')'), nl,
-            in_line_of_sight(TempBoard, ColumnIndex, Y, CColumnIndex, CY),
-            cell_color(TempBoard, CColumnIndex, CY, Player) ),
+            nth1(CheckColumnIndex, Row, _),
+            (CheckColumnIndex \= ColumnIndex ; CY \= Y),  % piece does not count itself
+            write('Checking in line of sight for ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CheckColumnIndex), write(','), write(CY), write(')'), nl,
+            in_line_of_sight(TempBoard, ColumnIndex, Y, CheckColumnIndex, CY),
+            cell_color(TempBoard, CheckColumnIndex, CY, Player) ),
         AllFriendlyCells),
     % remove duplicates
     sort(AllFriendlyCells, FriendlyCells),
@@ -318,40 +318,40 @@ add_stack_line_of_sight(TempBoard, Player, ColumnIndex, Y, NewBoard) :-
     increment_stacks(TempBoard, FriendlyCells, NewBoard).
 
 
-% True if (CColumnIndex, CY) is in same row, column, or diagonal with (ColumnIndex, Y), with no pieces in between
-in_line_of_sight(Board, ColumnIndex, Y, CColumnIndex, CY) :-
-    nonvar(ColumnIndex), nonvar(Y), nonvar(CColumnIndex), nonvar(CY),  % check variables are instantiated
-    integer(ColumnIndex), integer(Y), integer(CColumnIndex), integer(CY),  % check variables are integers
-    (   CColumnIndex = ColumnIndex, CY \= Y
-    ;   CY = Y, CColumnIndex \= ColumnIndex
-    ;   ((1 is ColumnIndex mod 2, 1 is Y mod 2) ; (0 is ColumnIndex mod 2, 0 is Y mod 2)), abs(CColumnIndex - ColumnIndex) =:= abs(CY - Y)  % diagonal check only if both row and column are odd or both are even
+% True if (CheckColumnIndex, CY) is in same row, column, or diagonal with (ColumnIndex, Y), with no pieces in between
+in_line_of_sight(Board, ColumnIndex, Y, CheckColumnIndex, CY) :-
+    nonvar(ColumnIndex), nonvar(Y), nonvar(CheckColumnIndex), nonvar(CY),  % check variables are instantiated
+    integer(ColumnIndex), integer(Y), integer(CheckColumnIndex), integer(CY),  % check variables are integers
+    (   CheckColumnIndex = ColumnIndex, CY \= Y
+    ;   CY = Y, CheckColumnIndex \= ColumnIndex
+    ;   ((1 is ColumnIndex mod 2, 1 is Y mod 2) ; (0 is ColumnIndex mod 2, 0 is Y mod 2)), abs(CheckColumnIndex - ColumnIndex) =:= abs(CY - Y)  % diagonal check only if both row and column are odd or both are even
     ),
-    write('Checking clear path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CColumnIndex), write(','), write(CY), write(')'), nl,
-    clear_path(Board, ColumnIndex, Y, CColumnIndex, CY).
+    write('Checking clear path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CheckColumnIndex), write(','), write(CY), write(')'), nl,
+    clear_path(Board, ColumnIndex, Y, CheckColumnIndex, CY).
 
 
-% checks path from (ColumnIndex,Y) to (CColumnIndex,CY) has no pieces in between
-clear_path(Board, ColumnIndex, Y, CColumnIndex, CY) :-
-    nonvar(ColumnIndex), nonvar(Y), nonvar(CColumnIndex), nonvar(CY),  % check variables are instantiated
+% checks path from (ColumnIndex,Y) to (CheckColumnIndex,CY) has no pieces in between
+clear_path(Board, ColumnIndex, Y, CheckColumnIndex, CY) :-
+    nonvar(ColumnIndex), nonvar(Y), nonvar(CheckColumnIndex), nonvar(CY),  % check variables are instantiated
     % if
-    (ColumnIndex = CColumnIndex ->
+    (ColumnIndex = CheckColumnIndex ->
     % then
         sign(CY - Y, Step),
-        write('Checking vertical path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CColumnIndex), write(','), write(CY), write(')'), nl,
+        write('Checking vertical path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CheckColumnIndex), write(','), write(CY), write(')'), nl,
         check_vertical(Board, ColumnIndex, Y, CY, Step)
     % else if
     ; Y = CY ->
     % then
-        sign(CColumnIndex - ColumnIndex, Step),
-        write('Checking horizontal path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CColumnIndex), write(','), write(CY), write(')'), nl,
-        check_horizontal(Board, Y, ColumnIndex, CColumnIndex, Step)
+        sign(CheckColumnIndex - ColumnIndex, Step),
+        write('Checking horizontal path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CheckColumnIndex), write(','), write(CY), write(')'), nl,
+        check_horizontal(Board, Y, ColumnIndex, CheckColumnIndex, Step)
     % else if
-    ; abs(CColumnIndex - ColumnIndex) =:= abs(CY - Y) ->
+    ; abs(CheckColumnIndex - ColumnIndex) =:= abs(CY - Y) ->
     % then
-        sign(CColumnIndex - ColumnIndex, StepColumnIndex),
+        sign(CheckColumnIndex - ColumnIndex, StepColumnIndex),
         sign(CY - Y, StepY),
-        write('Checking diagonal path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CColumnIndex), write(','), write(CY), write(')'), nl,
-        check_diagonal(Board, ColumnIndex, Y, CColumnIndex, CY, StepColumnIndex, StepY)
+        write('Checking diagonal path from ('), write(ColumnIndex), write(','), write(Y), write(') to ('), write(CheckColumnIndex), write(','), write(CY), write(')'), nl,
+        check_diagonal(Board, ColumnIndex, Y, CheckColumnIndex, CY, StepColumnIndex, StepY)
     ).
 
 
@@ -370,34 +370,34 @@ check_vertical(Board, ColumnIndex, Y, CY, Step) :-
     ).
 
 
-% check horizontally from ColumnIndex to CColumnIndex, ensuring no blocking piece
-check_horizontal(Board, Y, ColumnIndex, CColumnIndex, Step) :-
+% check horizontally from ColumnIndex to CheckColumnIndex, ensuring no blocking piece
+check_horizontal(Board, Y, ColumnIndex, CheckColumnIndex, Step) :-
     Next is ColumnIndex + Step,
     % if
-    (Next =:= CColumnIndex ->
+    (Next =:= CheckColumnIndex ->
     % then
         true
     % else
     ; nth1(Y, Board, Row),
         nth1(Next, Row, empty-0),
         write('Horizontal path clear at ('), write(Next), write(','), write(Y), write(')'), nl,
-        check_horizontal(Board, Y, Next, CColumnIndex, Step)
+        check_horizontal(Board, Y, Next, CheckColumnIndex, Step)
     ).
 
 
-% check diagonally from (ColumnIndex,Y) to (CColumnIndex,CY), ensuring no blocking piece
-check_diagonal(Board, ColumnIndex, Y, CColumnIndex, CY, StepColumnIndex, StepY) :-
+% check diagonally from (ColumnIndex,Y) to (CheckColumnIndex,CY), ensuring no blocking piece
+check_diagonal(Board, ColumnIndex, Y, CheckColumnIndex, CY, StepColumnIndex, StepY) :-
     NextColumnIndex is ColumnIndex + StepColumnIndex,
     NextY is Y + StepY,
     % if
-    (NextColumnIndex =:= CColumnIndex, NextY =:= CY ->
+    (NextColumnIndex =:= CheckColumnIndex, NextY =:= CY ->
     % then
         true
     % else
     ;   nth1(NextY, Board, Row),
         nth1(NextColumnIndex, Row, empty-0),
         write('Diagonal path clear at ('), write(NextColumnIndex), write(','), write(NextY), write(')'), nl,
-        check_diagonal(Board, NextColumnIndex, NextY, CColumnIndex, CY, StepColumnIndex, StepY)
+        check_diagonal(Board, NextColumnIndex, NextY, CheckColumnIndex, CY, StepColumnIndex, StepY)
     ).
 
 % check the color at (ColumnIndex,Y) if not empty
@@ -411,11 +411,11 @@ cell_color(Board, ColumnIndex, Y, Color) :-
 
 % increment stack height by 1 for each coordinate
 increment_stacks(Board, [], Board).
-increment_stacks(Board, [(CColumnIndex, CY)|Rest], NewBoard) :-
+increment_stacks(Board, [(CheckColumnIndex, CY)|Rest], NewBoard) :-
     nth1(CY, Board, OldRow),
-    nth1(CColumnIndex, OldRow, Color-Height),
+    nth1(CheckColumnIndex, OldRow, Color-Height),
     NewHeight is Height + 1,
-    replace_in_list(OldRow, CColumnIndex, Color-NewHeight, UpdatedRow),
+    replace_in_list(OldRow, CheckColumnIndex, Color-NewHeight, UpdatedRow),
     replace_in_list(Board, CY, UpdatedRow, TempBoard),
     increment_stacks(TempBoard, Rest, NewBoard).
 
