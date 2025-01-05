@@ -125,7 +125,7 @@ choose_move(GameState, Level, Move) :-
         pick_best_move(GameState, Moves, Move),
         move(GameState, Move, NewGameState),
         value(NewGameState, Player, Value),
-        format('Chose best move: ~w with value: ~w~n', [Move, Value]), nl
+        format('Chose best move using greedy algorithm: ~w with value: ~w~n', [Move, Value]), nl
     ).
 
 
@@ -339,8 +339,8 @@ pick_best_move(GameState, Moves, BestMove) :-
     findall(Value-Move,
         (member(Move, Moves),
             move(GameState, Move, NewGameState),
-            value(NewGameState, Player, Value),
-            format('Evaluated move: ~w with value: ~w~n', [Move, Value]), nl  % debug print
+            value(NewGameState, Player, Value)
+            % format('Evaluated move: ~w with value: ~w~n', [Move, Value]), nl  % debug print
         ),
         MoveValues),
     % find the best move
