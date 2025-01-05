@@ -16,7 +16,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% chat gpt
 % move(+GameState, +Move, -NewGameState)
 % This predicate is responsible for move validation and execution, receiving the current game state and the move to be executed, and (if the move is valid) returns the new game state after the move is executed.
 move(GameState, Move, NewGameState) :-
@@ -37,14 +36,12 @@ print_move_details(Player, move_stack(SourceColumnIndex, SourceRowIndex, Destina
 
 
 
-% chat gpt
 % valid_moves(+GameState, -ListOfMoves)
 % This predicate receives the current game state, and returns a list of all possible valid moves.
 valid_moves(GameState, ListOfMoves) :-
     findall(Move, valid_move(GameState, Move), ListOfMoves).
 
 
-% chat gpt
 % game_over(+GameState, -Winner)
 % This predicate receives the current game state, and verifies whether the game is over, in which case it also identifies the winner (or draw).
 % Note that this predicate should not print anything to the terminal.
@@ -60,7 +57,6 @@ game_over(GameState, Winner) :-
     ).
 
 
-% chat gpt pois nao temos um jogo com um valor de vitoria ou derrota mas pode ser tipo quantas peças cada um tem, ou quantas peças o jogador tem a mais que o outro
 % value(+GameState, +Player, -Value)
 % This predicate receives the current game state and returns a value measuring how good/bad the current game state is to the given Player.
 value(GameState, Player, Value) :-
@@ -86,7 +82,7 @@ value(GameState, Player, Value) :-
     ; Value is PlayerMoveCount - OpponentMoveCount
     ).
 
-% chat gpt
+
 % choose_move(+GameState, +Level, -Move)
 % This predicate receives the current game state and returns the move chosen by the computer player.
 % Level 1 should return a random valid move.
@@ -167,7 +163,7 @@ display_valid_moves(Board, Size) :-
 read_coords(ColumnIndex, RowIndex) :-
     read((ColumnIndex,RowIndex)).
 
-% chat gpt
+
 valid_move(GameState, place(ColumnIndex, RowIndex)) :-
     [Board, Player] = GameState,
     \+ player_has_stack(Board, Player),
