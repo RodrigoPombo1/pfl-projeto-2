@@ -246,10 +246,10 @@ next_player(black, white).
 % check if two cells are adjacent (including diagonals when they exist)
 is_adjacent(SourceColumnIndex, SY, DColumnIndex, DY) :-
     nonvar(SourceColumnIndex), nonvar(SY), nonvar(DColumnIndex), nonvar(DY),  % check variables are instantiated
-    DeltaColumnIndex is abs(SourceColumnIndex - DColumnIndex),
-    DeltaY is abs(SY - DY),
-    (   DeltaColumnIndex + DeltaY =:= 1  % horizontal or vertical move
-    ;   DeltaColumnIndex =:= 1, DeltaY =:= 1,  % diagonal move
+    DifferenceColumnIndex is abs(SourceColumnIndex - DColumnIndex),
+    DifferenceY is abs(SY - DY),
+    (   DifferenceColumnIndex + DifferenceY =:= 1  % horizontal or vertical move
+    ;   DifferenceColumnIndex =:= 1, DifferenceY =:= 1,  % diagonal move
         ((1 is SourceColumnIndex mod 2, 1 is SY mod 2) ; (0 is SourceColumnIndex mod 2, 0 is SY mod 2))  % noth coordinates are odd or both are even
     ).
 
