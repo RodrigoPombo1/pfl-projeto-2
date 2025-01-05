@@ -14,11 +14,12 @@
 initial_state(GameConfig, GameState) :-
     [BoardSize, new_game, _, _] = GameConfig,
     % create a SizexSize board of empty cells represented as empty-0 (color-empty, height=0)
+    % fill the board with empty cells
     length(Row, BoardSize),
-    maplist(=(empty-0), Row),
-    length(FullBoard, BoardSize),
-    maplist(=(Row), FullBoard),
-    reverse(FullBoard, Board),  % Reverse the board to have the bottom row first
+    maplist(=(empty-0), Row), % fill the BoardSize row with empty cells
+    length(FullBoard, BoardSize), 
+    maplist(=(Row), FullBoard), % fill the board with BoardSize rows with empty cells
+    reverse(FullBoard, Board),  % reverse the board to have the bottom row first (1,1 is at the bottom left corner)
     Player = white,
     GameState = [Board, Player].
 
