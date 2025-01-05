@@ -11,9 +11,9 @@
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% REQUIRED
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% REQUIRED %%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % move(+GameState, +Move, -NewGameState)
@@ -25,15 +25,6 @@ move(GameState, Move, NewGameState) :-
     next_player(Player, NextPlayer),
     NewGameState = [NewBoard, NextPlayer],
     print_move_details(Player, Move).
-
-% print_move_details(+Player, +Move)
-% This predicate prints the details of the move that was successfully completed.
-print_move_details(Player, place(ColumnIndex, RowIndex)) :-
-    format('Successfully completed move: Player: ~w, Move: Set piece at column ~w, row ~w~n', [Player, ColumnIndex, RowIndex]).
-print_move_details(Player, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) :-
-    format('Successfully completed move: Player: ~w, Move: Move stack from column ~w, row ~w to column ~w, row ~w~n', [Player, SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex]).
-
-
 
 
 % valid_moves(+GameState, -ListOfMoves)
@@ -115,9 +106,9 @@ choose_move(GameState, Level, Move) :-
     ).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ADDICIONAL
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%% ADDITIONAL %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % ask_user_where_to_place_piece(+Board, +Size, -Move)
 % This predicate asks the user where to place a piece on the board.
@@ -534,4 +525,11 @@ choose_stack(Board, Player, ColumnIndex, RowIndex) :-
 % display all valid stacks (to help the player choose a valid stack)
 display_valid_stacks(Stacks) :-
     write('Valid stacks: '), write(Stacks), nl.
+
+% print_move_details(+Player, +Move)
+% This predicate prints the details of the move that was successfully completed.
+print_move_details(Player, place(ColumnIndex, RowIndex)) :-
+    format('Successfully completed move: Player: ~w, Move: Set piece at column ~w, row ~w~n', [Player, ColumnIndex, RowIndex]). % debug print that could also just be kept as a status indicator
+print_move_details(Player, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) :-
+    format('Successfully completed move: Player: ~w, Move: Move stack from column ~w, row ~w to column ~w, row ~w~n', [Player, SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex]). % debug print that could also just be kept as a status indicator
 
