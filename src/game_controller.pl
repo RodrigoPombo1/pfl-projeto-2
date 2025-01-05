@@ -311,10 +311,13 @@ stack_belongs_to(Board, ColumnIndex, RowIndex, Player) :-
 
 % replace_in_list(+List, +Index, +Value, -NewList)
 % Replace element at index I in list with V.
-replace_in_list([_H|T], 1, V, [V|T]) :- !.
-replace_in_list([H|T], I, V, [H|R]) :-
-    I > 1, I2 is I - 1,
-    replace_in_list(T, I2, V, R).
+% when the index is 1, we replace the head of the list
+replace_in_list([_Head|Tail], 1, Value, [Value|Tail]) :- !.
+% when the index is greater than 1, we recursively replace the element at the index in the tail of the list until the index we want becomes the index 1
+replace_in_list([Head|Tail], Index, Value, [Head|NewTail]) :-
+    Index > 1,
+    NewIndex is Index - 1,
+    replace_in_list(Tail, NewIndex, Value, NewTail). % recursively replace the element at the index
 
 
 % move_piece(+Board, +SourceColumnIndex, +SourceRowIndex, +DestinationColumnIndex, +DestinationRowIndex, -NewBoard)
