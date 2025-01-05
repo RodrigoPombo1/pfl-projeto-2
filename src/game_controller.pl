@@ -181,14 +181,14 @@ valid_move(GameState, place(ColumnIndex, RowIndex)) :-
 valid_move(GameState, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) :-
     [Board, Player] = GameState,
     player_has_stack(Board, Player),
-    highest_stack_height(Board, Player, H),
+    highest_stack_height(Board, Player, HighestStackHeight),
     stack_belongs_to(Board, SourceColumnIndex, SourceRowIndex, Player),
     nth1(SourceRowIndex, Board, Row),
     nth1(SourceColumnIndex, Row, Player-Height),
     write('Checking move_stack from ('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write(') to ('), write(DestinationColumnIndex), write(','), write(DestinationRowIndex), write(')'), nl,
     write('Height of stack at ('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write('): '), write(Height), nl,
-    write('Highest stack height for player '), write(Player), write(': '), write(H), nl,
-    Height =:= H, % check the stack is the highest
+    write('Highest stack height for player '), write(Player), write(': '), write(HighestStackHeight), nl,
+    Height =:= HighestStackHeight, % check the stack is the highest
     length(Board, Size),
     between(1, Size, DestinationColumnIndex), % check DestinationColumnIndex is inside the board
     between(1, Size, DestinationRowIndex), % check DestinationRowIndex is inside the board
