@@ -81,11 +81,11 @@ value(GameState, Player, Value) :-
     length(OpponentStacks, OpponentStackCount),
     
     % if this is true then it means that we will win the game because the opponent can't move
-    (OpponentMaxMoves =:= 0 ->
+    (OpponentTotalMoves =:= 0 ->
     % then put the value really high because if we play it we win the game
         Value is 10000
     % else if this is true then it means that we will likely lose the game because we can't move, unless the opponent move allows us to, and so we should avoid this move at all costs, this way we try to block the other player from being able to place a piece
-    ; PlayerMaxMoves =:= 0, OpponentMaxMoves > 0 ->
+    ; PlayerTotalMoves =:= 0 ->
     % then put the value really low, we need to avoid this state at all costs
         Value is -10000
     % else just do the standard where we try to get more movement options and avoid the opponent from having movement options and also try to have has less stacks as possible while the opponent should have as many stacks as possible, by adding the max_stack for both the opponent and the player the player will try to have has many moves as possible right in the next play, and will try to make it so that the opponent has less moves right in the next play
@@ -339,7 +339,9 @@ pick_best_move(GameState, Moves, BestMove) :-
     findall(Value-Move,
         (member(Move, Moves),
             move(GameState, Move, NewGameState),
-            value(NewGameState, Player, Value)),
+            value(NewGameState, Player, Value),
+            format('Evaluated move: ~w with value: ~w~n', [Move, Value]), nl  % debug print
+        ),
         MoveValues),
     % find the best move
     max_member(_-BestMove, MoveValues).
