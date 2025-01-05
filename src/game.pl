@@ -60,7 +60,10 @@ print_winner(Winner) :-
 % get the level of the player
 get_level(Player, GameConfig, Level) :-
     [_, _, LevelWhitePlayer, LevelBlackPlayer] = GameConfig,
+    % if the player is white
     (Player = white ->
+    % then get the level of the white player
         Level = LevelWhitePlayer
+    % else get the level of the black player
     ; Level = LevelBlackPlayer).
 
