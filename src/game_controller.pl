@@ -48,29 +48,96 @@ game_over(GameState, Winner) :-
     ).
 
 
+% % value(+GameState, +Player, -Value)
+% % This predicate receives the current game state and returns a value measuring how good/bad the current game state is to the given Player.
+% value(GameState, Player, Value) :-
+%     % Calculate the number of valid moves for the given player
+%     valid_moves(GameState, PlayerMoves),
+%     length(PlayerMoves, PlayerMoveCount),
+
+%     % Calculate the number of valid moves for the opponent
+%     next_player(Player, Opponent),
+%     valid_moves([GameState, Opponent], OpponentMoves),
+%     length(OpponentMoves, OpponentMoveCount),
+
+%     % Calculate the value as the difference between the player's and the opponent's move counts
+%     % if this is true then it means that we will win the game because the opponent can't move
+%     (OpponentMoveCount =:= 0 ->
+%     % then
+%         Value is 10000
+%     % else if this is true then it means that we will likely lose the game because we can't move, unless the opponent move allows us to, and so we should avoid this move at all costs
+%     ; PlayerMoveCount =:= 0, OpponentMoveCount > 0 ->
+%     % then
+%         Value is -10000
+%     % else just do the standard where we try to get more movement options and avoid the opponent from having movement options
+%     ; Value is PlayerMoveCount - OpponentMoveCount
+%     ).
+
+% % value(+GameState, +Player, -Value)
+% % This predicate receives the current game state and returns a value measuring how good/bad the current game state is to the given Player.
+% value(GameState, Player, Value) :-
+%     % Calculate the maximum number of valid moves from a single stack for the given player
+%     max_moves_from_single_stack(GameState, Player, PlayerMaxMoves),
+
+%     % Calculate the maximum number of valid moves from a single stack for the opponent
+%     next_player(Player, Opponent),
+%     max_moves_from_single_stack(GameState, Opponent, OpponentMaxMoves),
+
+%     % Calculate the value as the difference between the player's and the opponent's max move counts
+%     % if this is true then it means that we will win the game because the opponent can't move
+%     (OpponentMaxMoves =:= 0 ->
+%     % then
+%         Value is 10000
+%     % else if this is true then it means that we will likely lose the game because we can't move, unless the opponent move allows us to, and so we should avoid this move at all costs
+%     ; PlayerMaxMoves =:= 0, OpponentMaxMoves > 0 ->
+%     % then
+%         Value is -10000
+%     % else just do the standard where we try to get more movement options and avoid the opponent from having movement options
+%     ; Value is PlayerMaxMoves - OpponentMaxMoves
+%     ).
+
 % value(+GameState, +Player, -Value)
 % This predicate receives the current game state and returns a value measuring how good/bad the current game state is to the given Player.
 value(GameState, Player, Value) :-
-    % Calculate the number of valid moves for the given player
+    [Board, _] = GameState,
+    % get the total number of valid moves for the player
     valid_moves(GameState, PlayerMoves),
-    length(PlayerMoves, PlayerMoveCount),
-
-    % Calculate the number of valid moves for the opponent
+    length(PlayerMoves, PlayerTotalMoves),
+    % if the player has any stacks
+    (player_has_stack(Board, Player) ->
+    % then get the maximum number of valid moves from a single stack for the given player, useful to see if we lose the game, because if it's 0 then we can't move and we will lose if the opponent can move
+        max_moves_from_single_stack(GameState, Player, PlayerMaxMoves)
+    % else (if no stacks) set PlayerMaxMoves to PlayerTotalMoves so that PlayerTotalMoves counts twice and so we don't want to stacks
+    ; PlayerMaxMoves = PlayerTotalMoves
+    ),
+    % get the total number of valid moves for the opponent
     next_player(Player, Opponent),
-    valid_moves([GameState, Opponent], OpponentMoves),
-    length(OpponentMoves, OpponentMoveCount),
-
-    % Calculate the value as the difference between the player's and the opponent's move counts
+    valid_moves([Board, Opponent], OpponentMoves),
+    length(OpponentMoves, OpponentTotalMoves),
+    % if the opponent has any stacks
+    (player_has_stack(Board, Opponent) ->
+    % then get the maximum number of valid moves from a single stack for the opponent
+        max_moves_from_single_stack(GameState, Opponent, OpponentMaxMoves)
+    % else (if the opponent has no stacks) set OpponentMaxMoves to OpponentTotalMoves so that OpponentTotalMoves counts twice and so we want them to have stacks
+    ; OpponentMaxMoves = OpponentTotalMoves
+    ),
+    % get the number of stacks the player has
+    findall(_, (member(Row, Board), member(Player-Height, Row), Height > 1), PlayerStacks),
+    length(PlayerStacks, PlayerStackCount),
+    % get the number of stacks the opponent has
+    findall(_, (member(Row, Board), member(Opponent-Height, Row), Height > 1), OpponentStacks),
+    length(OpponentStacks, OpponentStackCount),
+    
     % if this is true then it means that we will win the game because the opponent can't move
-    (OpponentMoveCount =:= 0 ->
-    % then
+    (OpponentMaxMoves =:= 0 ->
+    % then put the value really high because if we play it we win the game
         Value is 10000
     % else if this is true then it means that we will likely lose the game because we can't move, unless the opponent move allows us to, and so we should avoid this move at all costs
-    ; PlayerMoveCount =:= 0, OpponentMoveCount > 0 ->
-    % then
+    ; PlayerMaxMoves =:= 0, OpponentMaxMoves > 0 ->
+    % then put the value really low, we need to avoid this state at all costs
         Value is -10000
-    % else just do the standard where we try to get more movement options and avoid the opponent from having movement options
-    ; Value is PlayerMoveCount - OpponentMoveCount
+    % else just do the standard where we try to get more movement options and avoid the opponent from having movement options and also try to have has less stacks as possible while the opponent should have as many stacks as possible, by adding the max_stack for both the opponent and the player the player will try to have no stacks and for the opponent to have stacks 
+    ; Value is PlayerTotalMoves - OpponentTotalMoves + PlayerStackCount - OpponentStackCount + PlayerMaxMoves - OpponentMaxMoves
     ).
 
 
@@ -533,3 +600,25 @@ print_move_details(Player, place(ColumnIndex, RowIndex)) :-
 print_move_details(Player, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) :-
     format('Successfully completed move: Player: ~w, Move: Move stack from column ~w, row ~w to column ~w, row ~w~n', [Player, SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex]). % debug print that could also just be kept as a status indicator
 
+% max_moves_from_single_stack(+GameState, +Player, -MaxMoves)
+% This predicate calculates the maximum number of valid moves from a single stack for the given player.
+max_moves_from_single_stack(GameState, Player, MaxMoves) :-
+    [Board, _] = GameState,
+    findall(MoveCount,
+        (member(Row, Board),
+            nth1(RowIndex, Board, Row), % get the row where the stack is
+            nth1(ColumnIndex, Row, Player-Height), % get the height of the stack
+            nonvar(Height), % ensure Height is instantiated
+            integer(Height), % ensure Height is an integer
+            Height > 1,
+            findall(Move, valid_move(GameState, move_stack(ColumnIndex, RowIndex, _, _)), Moves), % get all valid moves for the stack
+            length(Moves, MoveCount) % count the number of valid moves for the stack
+        ),
+        MoveCounts), % get the move counts for all stacks
+    % if there are no stacks for the player
+    (MoveCounts = [] ->
+    % then
+        MaxMoves = 0
+    % else find the stack with the max move count
+    ; max_member(MaxMoves, MoveCounts)
+    ).
