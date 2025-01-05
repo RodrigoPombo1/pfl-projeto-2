@@ -23,7 +23,16 @@ move(GameState, Move, NewGameState) :-
     valid_move(GameState, Move),
     apply_move(Board, Player, Move, NewBoard),
     next_player(Player, NextPlayer),
-    NewGameState = [NewBoard, NextPlayer].
+    NewGameState = [NewBoard, NextPlayer],
+    print_move_details(Player, Move).
+
+% print_move_details(+Player, +Move)
+% This predicate prints the details of the move that was successfully completed.
+print_move_details(Player, place(X, Y)) :-
+    format('Successfully completed move: Player: ~w, Move: Set piece at column ~w, row ~w~n', [Player, X, Y]).
+print_move_details(Player, move_stack(SX, SY, DX, DY)) :-
+    format('Successfully completed move: Player: ~w, Move: Move stack from column ~w, row ~w to column ~w, row ~w~n', [Player, SX, SY, DX, DY]).
+
 
 
 
