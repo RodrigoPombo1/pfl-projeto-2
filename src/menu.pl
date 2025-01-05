@@ -8,7 +8,7 @@
 % Displays the menu and handles user input for game configuration.
 menu(NewGameConfig) :-
     repeat, % until we have a valid choice
-    nl, write('Welcome to the Game!'), nl,
+    nl, write('Sight Board Game'), nl,
     write('Please select an option:'), nl,
     write('1. Start a New Game where you can select the board size'), nl,
     write('2. Load Intermediate Game State in a 5x5 board'), nl,
