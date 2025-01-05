@@ -438,9 +438,9 @@ sign(Diff, Sign) :-
 % convert user input RowIndex to the correct list index (RowIndex’ = size - RowIndex + 1)
 actual_row_index(Board, RowIndex, RowIndexActual) :-
     integer(RowIndex),
-    length(Board, N),
-    between(1, N, RowIndex),
-    RowIndexActual is N - RowIndex + 1.
+    length(Board, Size),
+    between(1, Size, RowIndex),
+    RowIndexActual is Size - RowIndex + 1.
 
 
 % check if cell is empty
@@ -468,7 +468,7 @@ choose_stack(Board, Player, ColumnIndex, RowIndex) :-
     (Stacks = [] ->
         fail  % no stacks, fallback to placement
     ; Stacks = [(_,_,_)] ->  % if exactly one stack, pick it automatically
-        Stacks = [(SourceColumnIndex,SourceRowIndex,_H)],
+        Stacks = [(SourceColumnIndex,SourceRowIndex,_StackHeight)],
         write('Only one stack available. Automatically selected stack to move is (Column index: '), write(SourceColumnIndex), write(', Row index: '), write(SourceRowIndex), write(')'), nl,
         ColumnIndex = SourceColumnIndex, RowIndex = SourceRowIndex
     ; repeat,
