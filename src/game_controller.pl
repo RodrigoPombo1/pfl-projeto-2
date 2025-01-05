@@ -91,10 +91,10 @@ value(GameState, Player, Value) :-
 choose_move(GameState, Level, Move) :-
     [Board, Player] = GameState,
     length(Board, Size),
-    % if
-    ( Level = human ->
+    % if current player is human
+    (Level = human ->
     % then
-        % if
+        % if check the type of move to ask for input
         ( \+ player_has_stack(Board, Player) ->
         % then
             ask_user_where_to_place_piece(Board, Size, Move)
@@ -102,14 +102,14 @@ choose_move(GameState, Level, Move) :-
         % else
             ask_user_where_to_move_stack(Board, Player, Size, Move)
         )
-    % else if
+    % else if current player is computer level 1
     ; Level = computer_1 ->
-    % then
+    % then choose directly where to place the piece or where to move the stack to, skipping the select stack stage, randomly
         valid_moves(GameState, Moves),
         random_member(Move, Moves)
-    % else if
+    % else if current player is computer level 2
     ; Level = computer_2 ->
-    % then
+    % then choose directly where to place the piece or where to move the stack to, skipping the select stack stage, based on the best move
         valid_moves(GameState, Moves),
         pick_best_move(GameState, Moves, Move)
     ).
@@ -125,14 +125,20 @@ ask_user_where_to_place_piece(Board, Size, Move) :-
     repeat,
     write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
     read_coords(ColumnIndex, RowIndex),
-    ( between(1, Size, ColumnIndex), between(1, Size, RowIndex) ->
-        ( cell_empty(Board, ColumnIndex, RowIndex) ->
+    % if coordinates are inside the board
+    (between(1, Size, ColumnIndex), between(1, Size, RowIndex) ->
+    % then proceed to check if the cell is empty
+        % if the cell where the player is trying to place a piece is empty
+        (cell_empty(Board, ColumnIndex, RowIndex) ->
+        % then accept the move
             Move = place(ColumnIndex, RowIndex),
             !
+        % else select coordinates again and display the list of valid moves to help the player
         ; write('Invalid move: cell is not empty.'), nl,
           display_valid_moves(Board, Size),
           fail  % fail to repeat the loop
         )
+    % else select coordinates again and display the list of valid moves to help the player
     ; write('Invalid input: coordinates must be between 1 and '), write(Size), nl,
       display_valid_moves(Board, Size),
       fail  % fail to repeat the loop
@@ -145,14 +151,20 @@ ask_user_where_to_move_stack(Board, Player, Size, Move) :-
     choose_stack(Board, Player, SourceColumnIndex, SourceRowIndex),
     write('Enter destination coordinates DestinationColumnIndex,DestinationRowIndex: '),
     read_coords(DestinationColumnIndex, DestinationRowIndex),
-    ( between(1, Size, DestinationColumnIndex), between(1, Size, DestinationRowIndex) ->
-        ( valid_move([Board, Player], move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) ->
+    % if destination coordinates are inside the board
+    (between(1, Size, DestinationColumnIndex), between(1, Size, DestinationRowIndex) ->
+    % then procees checking if the move is valid
+        % if move is valid (source and destination are adjacent and destination cell is empty)
+        (valid_move([Board, Player], move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) ->
+        % then accept the move
             Move = move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex),
             !
+        % else select coordinates again and display the list of valid moves to help the player
         ; write('Invalid move: move is not valid.'), nl,
             display_valid_moves(Board, Size),
             fail  % fail to repeat the loop
         )
+    % else select coordinates again and display the list of valid moves to help the player
     ; write('Invalid input: coordinates must be between 1 and '), write(Size), nl,
         display_valid_moves(Board, Size),
         fail  % fail to repeat the loop
@@ -171,24 +183,27 @@ read_coords(ColumnIndex, RowIndex) :-
     read((ColumnIndex,RowIndex)).
 
 % valid_move(+GameState, +Move)
-% Check if a move is valid .
+% Check if a move is valid.
+% +Move can be wither place(ColumnIndex, RowIndex) or move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex).
 % Works for both place moves where we simply place a piece on an empty cell and move_stack moves where we move the top piece from the a stack to an adjacent empty cell.
 valid_move(GameState, place(ColumnIndex, RowIndex)) :-
     [Board, Player] = GameState,
-    \+ player_has_stack(Board, Player),
+    \+ player_has_stack(Board, Player), % make sure the move is to place a piece
     length(Board, Size),
+    % make sure the coordinates are inside the board
     between(1, Size, ColumnIndex),
     between(1, Size, RowIndex),
+    % make sure the cell is empty
     cell_empty(Board, ColumnIndex, RowIndex),
     write('Valid move: place('), write(ColumnIndex), write(','), write(RowIndex), write(')'), nl.
 
 valid_move(GameState, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) :-
     [Board, Player] = GameState,
-    player_has_stack(Board, Player),
-    highest_stack_height(Board, Player, HighestStackHeight),
-    stack_belongs_to(Board, SourceColumnIndex, SourceRowIndex, Player),
-    nth1(SourceRowIndex, Board, Row),
-    nth1(SourceColumnIndex, Row, Player-Height),
+    player_has_stack(Board, Player), % make sure the move is to move a stack
+    highest_stack_height(Board, Player, HighestStackHeight), % get the highest stack height for the player
+    stack_belongs_to(Board, SourceColumnIndex, SourceRowIndex, Player), % make sure the stack belongs to the player
+    nth1(SourceRowIndex, Board, Row), % get the row where the stack is
+    nth1(SourceColumnIndex, Row, Player-Height), % get the height of the stack
     write('Checking move_stack from ('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write(') to ('), write(DestinationColumnIndex), write(','), write(DestinationRowIndex), write(')'), nl,
     write('Height of stack at ('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write('): '), write(Height), nl,
     write('Highest stack height for player '), write(Player), write(': '), write(HighestStackHeight), nl,
@@ -196,27 +211,27 @@ valid_move(GameState, move_stack(SourceColumnIndex, SourceRowIndex, DestinationC
     length(Board, Size),
     between(1, Size, DestinationColumnIndex), % check DestinationColumnIndex is inside the board
     between(1, Size, DestinationRowIndex), % check DestinationRowIndex is inside the board
-    is_adjacent(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex),
+    is_adjacent(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex), % check source and destination are adjacent
     write('DestinationColumnIndex: '), write(DestinationColumnIndex), write(', DestinationRowIndex: '), write(DestinationRowIndex), nl,  % Debug print for DestinationColumnIndex and DestinationRowIndex
-    cell_empty(Board, DestinationColumnIndex, DestinationRowIndex),
+    cell_empty(Board, DestinationColumnIndex, DestinationRowIndex), % check destination cell is empty
     write('Valid move: move_stack('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write(','), write(DestinationColumnIndex), write(','), write(DestinationRowIndex), write(')'), nl.
 
 
 % highest_stack_height(+Board, +Player, -MaxHeight)
 % Find the highest stack height for a player.
 highest_stack_height(Board, Player, MaxHeight) :-
-    findall(H,
+    findall(Height,
         ( member(Row, Board),
-          member(Player-H, Row),
-          H > 1
+          member(Player-Height, Row),
+          Height > 1
         ),
         Heights),
-    % if
-    ( Heights = [] ->
+    % if there are no stacks for the player
+    (Heights = [] ->
     % then
     MaxHeight = 1 % no stacks found, so MaxHeight is 1 (it's necessary so that we don't get a instantiation error)
-    % else
-    ;  max_member(MaxHeight, Heights)
+    % else find the stack with the max height
+    ; max_member(MaxHeight, Heights)
     ).
 
 
