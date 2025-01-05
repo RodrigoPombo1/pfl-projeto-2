@@ -386,20 +386,20 @@ clear_path(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex) :-
     % if the two cells are in the same column
     (ColumnIndex = CheckColumnIndex ->
     % then check the vertical path
-        sign(CheckRowIndex - RowIndex, Step),
+        sign(CheckRowIndex - RowIndex, Step), % Step is 1 (moving down) or -1 (moving up)
         % write('Checking vertical path from ('), write(ColumnIndex), write(','), write(RowIndex), write(') to ('), write(CheckColumnIndex), write(','), write(CheckRowIndex), write(')'), nl, % debug print
         check_vertical(Board, ColumnIndex, RowIndex, CheckRowIndex, Step)
     % else if the two cells are in the same row
     ; RowIndex = CheckRowIndex ->
     % then check the horizontal path
-        sign(CheckColumnIndex - ColumnIndex, Step),
+        sign(CheckColumnIndex - ColumnIndex, Step), % Step is 1 (moving right) or -1 (moving left)
         % write('Checking horizontal path from ('), write(ColumnIndex), write(','), write(RowIndex), write(') to ('), write(CheckColumnIndex), write(','), write(CheckRowIndex), write(')'), nl, % debug print
         check_horizontal(Board, RowIndex, ColumnIndex, CheckColumnIndex, Step)
     % else if the two cells are in the same diagonal
     ; abs(CheckColumnIndex - ColumnIndex) =:= abs(CheckRowIndex - RowIndex) ->
     % then check the diagonal path
-        sign(CheckColumnIndex - ColumnIndex, StepColumnIndex),
-        sign(CheckRowIndex - RowIndex, StepRowIndex),
+        sign(CheckColumnIndex - ColumnIndex, StepColumnIndex), % StepColumnIndex is 1 (moving right) or -1 (moving left)
+        sign(CheckRowIndex - RowIndex, StepRowIndex), % StepRowIndex is 1 (moving down) or -1 (moving up)
         % write('Checking diagonal path from ('), write(ColumnIndex), write(','), write(RowIndex), write(') to ('), write(CheckColumnIndex), write(','), write(CheckRowIndex), write(')'), nl, % debug print
         check_diagonal(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex, StepColumnIndex, StepRowIndex)
     ).
