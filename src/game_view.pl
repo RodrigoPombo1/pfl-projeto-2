@@ -28,7 +28,7 @@ display_game(GameState) :-
 % ADDICIONAL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+% print_column_headers(+Size)
 % print column headers from 1..Size
 print_column_headers(Size) :-
     write('   '),
@@ -43,7 +43,7 @@ print_column_numbers(ColumnIndex, Size) :-
     print_column_numbers(NextColumnIndex, Size).
 print_column_numbers(_, _).
 
-
+% print_rows(+Board, +RowIndex)
 % print rows from bottom to top
 print_rows(Board, RowIndex) :-
     (RowIndex > 0 ->
@@ -60,7 +60,7 @@ print_rows(Board, RowIndex) :-
         print_rows(Board, NextRow)
     ; true).
 
-
+% print_row_cells(+Row)
 % print the individual cells of a row
 print_row_cells([]).
 print_row_cells([Cell]) :-  % Base case for the last cell
@@ -69,13 +69,12 @@ print_row_cells([Cell|Rest]) :-
     write(Cell), write(' -- '),
     print_row_cells(Rest).
 
-
+% print_row_connections(+RowIndex, +Size)
 % print row connections with separators
 print_row_connections(RowIndex, Size) :-
     write('       |'),  % Always start with '|'
     print_row_connections(RowIndex, 2, Size),
     nl.
-
 print_row_connections(_, ColumnIndex, Size) :-
     ColumnIndex > Size, !.
 print_row_connections(RowIndex, ColumnIndex, Size) :-

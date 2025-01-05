@@ -4,12 +4,13 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% REQUIRED FUNCTIONS
+% REQUIRED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % initial_state(+GameConfig, -GameState)
 % This predicate receives a desired game configuration and returns the corresponding initial game state. Game configuration includes the type of each player and other parameters such as board size, use of optional rules, player names, or other information to provide more flexibility to the game. The game state describes a snapshot of the current game state, including board configuration (typically using list of lists with different atoms for the different pieces), identifies the current player (the one playing next), and possibly captured pieces and/or pieces yet to be played, or any other information that may be required, depending on the game.
+% for a brand new game
 initial_state(GameConfig, GameState) :-
     [BoardSize, new_game, _, _] = GameConfig,
     % create a SizexSize board of empty cells represented as empty-0 (color-empty, height=0)
@@ -21,7 +22,7 @@ initial_state(GameConfig, GameState) :-
     Player = white,
     GameState = [Board, Player].
 
-
+% for a game in intermediate state
 initial_state(GameConfig, GameState) :-
     [BoardSize, intermediate_game, _, _] = GameConfig,
     % create a 5x5 board with an intermediate game state
@@ -35,7 +36,7 @@ initial_state(GameConfig, GameState) :-
     Player = black, % select player that will play the next move
     GameState = [Board, Player].
 
-
+% for a game in near final state
 initial_state(GameConfig, GameState) :-
     [5, near_final_game, _, _] = GameConfig,
     % create a 5x5 board with a near-final game state
@@ -48,9 +49,3 @@ initial_state(GameConfig, GameState) :-
     ],
     Player = white, % select player that will play the next move
     GameState = [Board, Player].
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ADDICIONAL FUNCTIONS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

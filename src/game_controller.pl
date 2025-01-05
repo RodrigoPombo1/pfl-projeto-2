@@ -119,6 +119,8 @@ choose_move(GameState, Level, Move) :-
 % ADDICIONAL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% ask_user_where_to_place_piece(+Board, +Size, -Move)
+% This predicate asks the user where to place a piece on the board.
 ask_user_where_to_place_piece(Board, Size, Move) :-
     repeat,
     write('Enter coordinates ColumnIndex,RowIndex to place a piece: '),
@@ -136,6 +138,8 @@ ask_user_where_to_place_piece(Board, Size, Move) :-
       fail  % fail to repeat the loop
     ).
 
+% ask_user_where_to_move_stack(+Board, +Player, +Size, -Move)
+% This predicate asks the user where to move a stack on the board.
 ask_user_where_to_move_stack(Board, Player, Size, Move) :-
     repeat,
     choose_stack(Board, Player, SourceColumnIndex, SourceRowIndex),
@@ -154,16 +158,21 @@ ask_user_where_to_move_stack(Board, Player, Size, Move) :-
         fail  % fail to repeat the loop
     ).
 
-
+% display_valid_moves(+Board, +Size)
+% Display valid moves to the user (useful after he inputs a wrong move to show him a correct move to choose from).
 display_valid_moves(Board, Size) :-
     findall(place(ColumnIndex, RowIndex), (between(1, Size, ColumnIndex), between(1, Size, RowIndex), cell_empty(Board, ColumnIndex, RowIndex)), ValidMoves),
     write('Valid moves: '), write(ValidMoves), nl.
 
-% reads “ColumnIndex,RowIndex.” from the user input
+
+% read_coords(-ColumnIndex, -RowIndex)
+% Reads “ColumnIndex,RowIndex.” from the user input.
 read_coords(ColumnIndex, RowIndex) :-
     read((ColumnIndex,RowIndex)).
 
-
+% valid_move(+GameState, +Move)
+% Check if a move is valid .
+% Works for both place moves where we simply place a piece on an empty cell and move_stack moves where we move the top piece from the a stack to an adjacent empty cell.
 valid_move(GameState, place(ColumnIndex, RowIndex)) :-
     [Board, Player] = GameState,
     \+ player_has_stack(Board, Player),
@@ -172,7 +181,6 @@ valid_move(GameState, place(ColumnIndex, RowIndex)) :-
     between(1, Size, RowIndex),
     cell_empty(Board, ColumnIndex, RowIndex),
     write('Valid move: place('), write(ColumnIndex), write(','), write(RowIndex), write(')'), nl.
-
 
 valid_move(GameState, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex)) :-
     [Board, Player] = GameState,
@@ -194,7 +202,8 @@ valid_move(GameState, move_stack(SourceColumnIndex, SourceRowIndex, DestinationC
     write('Valid move: move_stack('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write(','), write(DestinationColumnIndex), write(','), write(DestinationRowIndex), write(')'), nl.
 
 
-% find the highest stack height for a player
+% highest_stack_height(+Board, +Player, -MaxHeight)
+% Find the highest stack height for a player.
 highest_stack_height(Board, Player, MaxHeight) :-
     findall(H,
         ( member(Row, Board),
@@ -211,13 +220,14 @@ highest_stack_height(Board, Player, MaxHeight) :-
     ).
 
 
-% applies a move to the board when it's placing a piece on an empty cell
+% apply_move(+Board, +Player, +Move, -NewBoard)
+% Works for both place moves where we simply place a piece on an empty cell and move_stack moves where we move the top piece from the a stack to an adjacent empty cell.
+% Applies a move to the board when it's placing a piece on an empty cell.
 apply_move(Board, Player, place(ColumnIndex, RowIndex), NewBoard) :-
     write('Applying move: place('), write(ColumnIndex), write(','), write(RowIndex), write(')'), nl,
     set_cell(Board, ColumnIndex, RowIndex, Player-1, TempBoard),
     add_stack_line_of_sight(TempBoard, Player, ColumnIndex, RowIndex, NewBoard).
-
-% applies move to the board in the case where it's removing a piece from a stack and moving it to another adjacent cell
+% Applies move to the board in the case where it's removing a piece from a stack and moving it to another adjacent cell.
 apply_move(Board, Player, move_stack(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex), NewBoard) :-
     write('Applying move: move_stack('), write(SourceColumnIndex), write(','), write(SourceRowIndex), write(','), write(DestinationColumnIndex), write(','), write(DestinationRowIndex), write(')'), nl,
     move_piece(Board, SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex, TempBoard1),
@@ -225,7 +235,8 @@ apply_move(Board, Player, move_stack(SourceColumnIndex, SourceRowIndex, Destinat
     remove_piece_from_stack(TempBoard2, SourceColumnIndex, SourceRowIndex, NewBoard).
 
 
-% remove one piece from the stack at (SourceColumnIndex, SourceRowIndex) (useful after moving a stack)
+% remove_piece_from_stack(+Board, +SourceColumnIndex, +SourceRowIndex, -NewBoard)
+% Remove one piece from the stack at (SourceColumnIndex, SourceRowIndex) (useful after moving a stack).
 remove_piece_from_stack(Board, SourceColumnIndex, SourceRowIndex, NewBoard) :-
     nth1(SourceRowIndex, Board, OldRow),
     nth1(SourceColumnIndex, OldRow, Color-Height),
@@ -234,12 +245,14 @@ remove_piece_from_stack(Board, SourceColumnIndex, SourceRowIndex, NewBoard) :-
     replace_in_list(Board, SourceRowIndex, UpdatedRow, NewBoard).
 
 
-% switch players
+% next_player(+Player, -NextPlayer)
+% Switch players.
 next_player(white, black).
 next_player(black, white).
 
 
-% check if two cells are adjacent (including diagonals when they exist)
+% is_adjacent(+SourceColumnIndex, +SourceRowIndex, +DestinationColumnIndex, +DestinationRowIndex)
+% Check if two cells are adjacent (including diagonals when they exist).
 is_adjacent(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex) :-
     nonvar(SourceColumnIndex), nonvar(SourceRowIndex), nonvar(DestinationColumnIndex), nonvar(DestinationRowIndex),  % check variables are instantiated
     DifferenceColumnIndex is abs(SourceColumnIndex - DestinationColumnIndex),
@@ -250,28 +263,32 @@ is_adjacent(SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, Destinati
     ).
 
 
-% check if current player has at least one stack
+% player_has_stack(+Board, +Player)
+% Check if current player has at least one stack.
 player_has_stack(Board, Player) :-
     member(Row, Board),
     member(Player-Height, Row),
     Height > 1, !.  % because stack has height > 1
 
 
-% check if stack belongs to the player
+% stack_belongs_to(+Board, +ColumnIndex, +RowIndex, +Player)
+% Check if stack belongs to the player.
 stack_belongs_to(Board, ColumnIndex, RowIndex, Player) :-
     nth1(RowIndex, Board, Row),
     nth1(ColumnIndex, Row, Player-Height),
     Height > 1.
 
 
-% replace element at index I in list with V
+% replace_in_list(+List, +Index, +Value, -NewList)
+% Replace element at index I in list with V.
 replace_in_list([_H|T], 1, V, [V|T]) :- !.
 replace_in_list([H|T], I, V, [H|R]) :-
     I > 1, I2 is I - 1,
     replace_in_list(T, I2, V, R).
 
 
-% move the top piece from (SourceColumnIndex,SourceRowIndex) to (DestinationColumnIndex,DestinationRowIndex)
+% move_piece(+Board, +SourceColumnIndex, +SourceRowIndex, +DestinationColumnIndex, +DestinationRowIndex, -NewBoard)
+% Move the top piece from the stack at (SourceColumnIndex,SourceRowIndex) to (DestinationColumnIndex,DestinationRowIndex).
 move_piece(Board, SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, DestinationRowIndex, NewBoard) :-
     nth1(SourceRowIndex, Board, OldRow1),
     nth1(SourceColumnIndex, OldRow1, Color-Height),
@@ -284,7 +301,8 @@ move_piece(Board, SourceColumnIndex, SourceRowIndex, DestinationColumnIndex, Des
     replace_in_list(TempBoard1, DestinationRowIndex, UpdatedRow2, NewBoard).
 
 
-% Stub for best move
+% pick_best_move(+GameState, +Moves, -BestMove)
+% Pick the best move from a list of moves based on the value of the resulting game state.
 pick_best_move(GameState, Moves, BestMove) :-
     [Board, Player] = GameState,
     findall(Value-Move,
@@ -294,7 +312,8 @@ pick_best_move(GameState, Moves, BestMove) :-
         MoveValues),
     max_member(_-BestMove, MoveValues).
 
-% adds a piece on every friendly piece in line of sight (same row, column, or diagonal, with no pieces blocking)
+% add_stack_line_of_sight(+TempBoard, +Player, +ColumnIndex, +RowIndex, -NewBoard)
+% Adds a piece on every friendly piece in line of sight (same row, column, or diagonal, with no pieces blocking).
 add_stack_line_of_sight(TempBoard, Player, ColumnIndex, RowIndex, NewBoard) :-
     write('Adding stack line of sight for ('), write(ColumnIndex), write(','), write(RowIndex), write(')'), nl,
     % find all positions in line of sight of (ColumnIndex,RowIndex) belonging to Player
@@ -326,7 +345,8 @@ in_line_of_sight(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex) 
     clear_path(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex).
 
 
-% checks path from (ColumnIndex,RowIndex) to (CheckColumnIndex,CheckRowIndex) has no pieces in between
+% clear_path(+Board, +ColumnIndex, +RowIndex, +CheckColumnIndex, +CheckRowIndex)
+% Checks path from (ColumnIndex,RowIndex) to (CheckColumnIndex,CheckRowIndex) has no pieces in between.
 clear_path(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex) :-
     nonvar(ColumnIndex), nonvar(RowIndex), nonvar(CheckColumnIndex), nonvar(CheckRowIndex),  % check variables are instantiated
     % if
@@ -351,7 +371,8 @@ clear_path(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex) :-
     ).
 
 
-% check vertically from RowIndex to CheckRowIndex, ensuring no blocking piece
+% check_vertically(+Board, +ColumnIndex, +RowIndex, +CheckRowIndex, +Step)
+% Check vertically from RowIndex to CheckRowIndex, to make sure there is no piece blocking the line of sight.
 check_vertical(Board, ColumnIndex, RowIndex, CheckRowIndex, Step) :-
     Next is RowIndex + Step,
     % if
@@ -366,7 +387,8 @@ check_vertical(Board, ColumnIndex, RowIndex, CheckRowIndex, Step) :-
     ).
 
 
-% check horizontally from ColumnIndex to CheckColumnIndex, ensuring no blocking piece
+% check_horizontally(+Board, +RowIndex, +ColumnIndex, +CheckColumnIndex, +Step)
+% Check horizontally from ColumnIndex to CheckColumnIndex, to make sure there is no piece blocking the line of sight.
 check_horizontal(Board, RowIndex, ColumnIndex, CheckColumnIndex, Step) :-
     Next is ColumnIndex + Step,
     % if
@@ -380,8 +402,8 @@ check_horizontal(Board, RowIndex, ColumnIndex, CheckColumnIndex, Step) :-
         check_horizontal(Board, RowIndex, Next, CheckColumnIndex, Step)
     ).
 
-
-% check diagonally from (ColumnIndex,RowIndex) to (CheckColumnIndex,CheckRowIndex), ensuring no blocking piece
+% check_diagonal(+Board, +ColumnIndex, +RowIndex, +CheckColumnIndex, +CheckRowIndex, +StepColumnIndex, +StepRowIndex)
+% Check diagonally from (ColumnIndex,RowIndex) to (CheckColumnIndex,CheckRowIndex), to make sure there is no piece blocking the line of sight.
 check_diagonal(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex, StepColumnIndex, StepRowIndex) :-
     NextColumnIndex is ColumnIndex + StepColumnIndex,
     NextRowIndex is RowIndex + StepRowIndex,
@@ -396,7 +418,8 @@ check_diagonal(Board, ColumnIndex, RowIndex, CheckColumnIndex, CheckRowIndex, St
         check_diagonal(Board, NextColumnIndex, NextRowIndex, CheckColumnIndex, CheckRowIndex, StepColumnIndex, StepRowIndex)
     ).
 
-% check the color at (ColumnIndex,RowIndex) if not empty
+% cell_color(+Board, +ColumnIndex, +RowIndex, -Color)
+% Check the color at (ColumnIndex,RowIndex) if not empty.
 cell_color(Board, ColumnIndex, RowIndex, Color) :-
     nth1(RowIndex, Board, Row),
     nth1(ColumnIndex, Row, Color-Height),
@@ -404,8 +427,8 @@ cell_color(Board, ColumnIndex, RowIndex, Color) :-
     Height >= 1.
 
 
-
-% increment stack height by 1 for each coordinate
+% increment_stacks(+Board, +ListOfCoordinates, -NewBoard)
+% Increment stack height by 1 for each of the specified coordinates.
 increment_stacks(Board, [], Board).
 increment_stacks(Board, [(CheckColumnIndex, CheckRowIndex)|Rest], NewBoard) :-
     nth1(CheckRowIndex, Board, OldRow),
@@ -416,7 +439,8 @@ increment_stacks(Board, [(CheckColumnIndex, CheckRowIndex)|Rest], NewBoard) :-
     increment_stacks(TempBoard, Rest, NewBoard).
 
 
-% get the sign of a number
+% sign(+Diff, -Sign)
+% Get the sign of a number (useful for checking direction).
 sign(Diff, Sign) :-
     % if
     (Diff > 0 ->
@@ -430,29 +454,31 @@ sign(Diff, Sign) :-
     ; Sign is 0
     ).
 
-
-% convert user input RowIndex to the correct list index (RowIndex’ = size - RowIndex + 1)
+% actual_row_index(+Board, +RowIndex, -RowIndexActual)
+% Converts user input RowIndex to the correct list index (ActualRowIndex = size - RowIndex + 1)
 actual_row_index(Board, RowIndex, RowIndexActual) :-
     integer(RowIndex),
     length(Board, Size),
     between(1, Size, RowIndex),
     RowIndexActual is Size - RowIndex + 1.
 
-
-% check if cell is empty
+% cell_empty(+Board, +ColumnIndex, +RowIndex)
+% Checks if cell is empty.
 cell_empty(Board, ColumnIndex, RowIndex) :-
     nth1(RowIndex, Board, Row),
     nth1(ColumnIndex, Row, empty-0).
 
 
-% sets a cell on the board with the value specified
+% set_cell(+Board, +ColumnIndex, +RowIndex, +Value, -NewBoard)
+% Sets a cell on the board with the value specified.
 set_cell(Board, ColumnIndex, RowIndex, Value, NewBoard) :-
     nth1(RowIndex, Board, OldRow),
     replace_in_list(OldRow, ColumnIndex, Value, NewRow),
     replace_in_list(Board, RowIndex, NewRow, NewBoard).
 
 
-% pick the stack's coordinates (ColumnIndex,RowIndex) making sure they are instantiated
+% choose_stack(+Board, +Player, -SourceColumnIndex, -SourceRowIndex)
+% This predicate asks the user which stack to move on the board.
 choose_stack(Board, Player, ColumnIndex, RowIndex) :-
     % find all stacks for Player
     findall((SourceColumnIndex,SourceRowIndex,Height),
