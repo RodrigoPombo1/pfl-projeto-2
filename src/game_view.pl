@@ -10,11 +10,10 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% REQUIRED FUNCTIONS
+% REQUIRED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% chat gpt
 % display_game(+GameState)
 % This predicate receives the current game state (including the player who will make the next move) and prints the game state to the terminal. Appealing and intuitive visualizations will be valued. Flexible game state representations and visualization predicates will also be valued, for instance those that work with any board size.
 % For uniformization purposes, coordinates should start at (1,1) at the lower left corner.
@@ -28,7 +27,7 @@ display_game(GameState) :-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ADDICIONAL FUNCTIONS
+% ADDICIONAL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -46,6 +45,7 @@ print_column_numbers(ColumnIndex, Size) :-
     print_column_numbers(NextColumnIndex, Size).
 print_column_numbers(_, _).
 
+
 % print rows from bottom to top
 print_rows(Board, RowIndex) :-
     (RowIndex > 0 ->
@@ -61,6 +61,8 @@ print_rows(Board, RowIndex) :-
         NextRow is RowIndex - 1,
         print_rows(Board, NextRow)
     ; true).
+
+
 % print the individual cells of a row
 print_row_cells([]).
 print_row_cells([Cell]) :-  % Base case for the last cell
@@ -68,6 +70,7 @@ print_row_cells([Cell]) :-  % Base case for the last cell
 print_row_cells([Cell|Rest]) :-
     write(Cell), write(' -- '),
     print_row_cells(Rest).
+
 
 % print row connections with separators
 print_row_connections(RowIndex, Size) :-

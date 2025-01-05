@@ -6,19 +6,15 @@
 :- use_module(library(system), [now/1]).
 
 % import other project files
-:- consult(menu_controller).
+:- consult(menu).
 :- consult(game_controller).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% REQUIRED FUNCTIONS
+% REQUIRED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-% display_game(initial_state(new_game_config)).
-% while not game over
-
-% chat gpt
+% play/0
 % The main predicate, play/0, must be in the game.pl file and must give access to the game menu, which allows configuring the game type (H/H, H/PC, PC/H, or PC/PC), difficulty level(s) to be used by the artificial player(s), among other possible parameters, and start the game cycle.
 play :-
     init_random_state,
@@ -28,9 +24,10 @@ play :-
     game_cycle(GameState, NewGameConfig).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ADDICIONAL FUNCTIONS
+% ADDICIONAL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% init_random_state/0
 % start a new random state based on the current time so that it is different everytime we run the program, we got it from here https://sicstus.sics.se/sicstus/docs/latest/html/sicstus.html/lib_002drandom.html
 init_random_state :-
     now(X),
